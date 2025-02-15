@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/teachers")
+@RequestMapping("/teachers/api")
 public class TeacherController {
 
         @Autowired
@@ -24,6 +24,17 @@ public class TeacherController {
         @PostMapping
         public ResponseEntity<TeacherDTO> createTeacher(@RequestBody @Valid TeacherDTO teacherDTO) {
             return new ResponseEntity<>(teacherService.createTeacher(teacherDTO), HttpStatus.CREATED);
+        }
+
+        @PutMapping("/{id}")
+        public ResponseEntity<TeacherDTO> updateTeacher(@PathVariable Long id, @RequestBody @Valid TeacherDTO teacherDTO) {
+            return ResponseEntity.ok(teacherService.updateTeacher(id, teacherDTO));
+        }
+
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteTeacher(@PathVariable Long id) {
+            teacherService.deleteTeacher(id);
+            return ResponseEntity.noContent().build();
         }
 }
 

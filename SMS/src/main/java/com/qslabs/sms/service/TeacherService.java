@@ -23,4 +23,31 @@ public class TeacherService {
         teacher = teacherRepository.save(teacher);
         return new TeacherDTO(teacher);
     }
+
+    public TeacherDTO updateTeacher(Long id, TeacherDTO teacherDTO) {
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + id));
+
+        teacher.setName(teacherDTO.getName());
+        teacher.setEmail(teacherDTO.getEmail());
+        teacher.setPassword(teacherDTO.getPassword());
+        teacher.setPhone(teacherDTO.getPhone());
+        teacher.setDob(teacherDTO.getDob());
+        teacher.setGender(teacherDTO.getGender());
+        teacher.setAddress(teacherDTO.getAddress());
+        teacher.setJoiningDate(teacherDTO.getJoiningDate());
+        teacher.setStatus(teacherDTO.getStatus());
+        teacher.setRole(teacherDTO.getRole());
+
+
+        teacher = teacherRepository.save(teacher);
+        return new TeacherDTO(teacher);
+    }
+
+    public void deleteTeacher(Long id) {
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + id));
+
+        teacherRepository.delete(teacher);
+    }
 }
