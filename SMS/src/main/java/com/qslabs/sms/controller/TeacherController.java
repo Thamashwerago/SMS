@@ -9,12 +9,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/teachers/api")
+@RequestMapping("/api/teachers")
 public class TeacherController {
 
         @Autowired
         private TeacherService teacherService;
+
+        @GetMapping
+        public ResponseEntity<List<TeacherDTO>> getAllStudents() {
+            return ResponseEntity.ok(teacherService.getAllTeachers());
+        }
 
         @GetMapping("/{id}")
         public ResponseEntity<TeacherDTO> getTeacherById(@PathVariable Long id) {
