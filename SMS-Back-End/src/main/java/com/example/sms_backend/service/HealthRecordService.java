@@ -4,6 +4,8 @@ import com.example.sms_backend.model.HealthRecord;
 import com.example.sms_backend.repository.HealthRecordRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class HealthRecordService {
 

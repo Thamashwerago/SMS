@@ -4,13 +4,16 @@ import com.example.sms_backend.dto.StudentDTO;
 import com.example.sms_backend.model.Student;
 import com.example.sms_backend.repository.StudentRepository;
 import com.example.sms_backend.util.ValidationUtil;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class StudentService {
+    // todo change to a interface and only signature , create another class called StudentServiceImpl class
 
     private final StudentRepository studentRepository;
 
@@ -32,10 +35,15 @@ public class StudentService {
         return dto;
     }
 
-    // Fetch all students
-    public List<StudentDTO> getAllStudents() {
-        List<Student> students = studentRepository.findAll();
-        return students.stream().map(this::convertToDTO).collect(Collectors.toList());
+    /**
+     * Retrieves paginated students.
+     *
+     * @param pageable Pageable object for pagination.
+     * @return Page of StudentDTOs.
+     */
+    public Page<StudentDTO> getAllStudents(Pageable pageable) {
+        return studentRepository.findAll(pageable)
+                .map(this::convertToDTO);
     }
 
     // Fetch a student by ID
