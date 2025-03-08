@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+// Todo
+// Crreate utip package and create Constant class and add hard code value ex: URL
+// Get all student add pagination(limit, range) method
 @RestController
 @RequestMapping("/api/teachers")
 public class TeacherController {

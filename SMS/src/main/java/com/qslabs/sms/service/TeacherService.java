@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+// Todo
+// change this class to interface
+// Create new class teacherserviceimpl to implement methods add move code
+// change application.properties to yaml
 @Service
 public class TeacherService {
     @Autowired
