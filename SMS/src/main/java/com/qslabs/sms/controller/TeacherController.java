@@ -3,6 +3,7 @@ package com.qslabs.sms.controller;
 import com.qslabs.sms.dto.TeacherDTO;
 import com.qslabs.sms.model.Teacher;
 import com.qslabs.sms.service.TeacherService;
+import com.qslabs.sms.util.Constant;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,7 @@ import java.util.List;
 // Crreate utip package and create Constant class and add hard code value ex: URL
 // Get all student add pagination(limit, range) method
 @RestController
-@RequestMapping("/api/teachers")
+@RequestMapping(Constant.URL)
 public class TeacherController {
 
         @Autowired
