@@ -5,4 +5,3 @@ public class StudentNotFoundException extends RuntimeException {
         super(message);
     }
 }
-// todo inherite notfound

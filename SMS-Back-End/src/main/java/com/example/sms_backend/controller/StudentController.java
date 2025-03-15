@@ -4,165 +4,77 @@ import com.example.sms_backend.dto.StudentDTO;
 import com.example.sms_backend.model.Student;
 import com.example.sms_backend.service.ExternalDataService;
 import com.example.sms_backend.service.StudentService;
-import com.example.sms_backend.util.Constants;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-/**
- * Controller for managing student records.
- * Provides endpoints for retrieving, adding, updating, and deleting student records.
- */
 @RestController
-@RequestMapping(Constants.REQUEST_MAPPING_STUDENT)
+@RequestMapping("/api/students")
 public class StudentController {
 
     private final StudentService studentService;
+
     private final ExternalDataService externalDataService;
 
-    /**
-     * Constructor to inject dependencies.
-     *
-     * @param studentService        Service layer for student operations.
-     * @param externalDataService   Service layer for fetching external data (attendance, courses).
-     */
     public StudentController(StudentService studentService, ExternalDataService externalDataService) {
         this.studentService = studentService;
         this.externalDataService = externalDataService;
     }
 
-    /**
-     * Retrieves all students with pagination.
-     *
-     * @param page The page number (default = 0).
-     * @param size The number of records per page (default = 10).
-     * @return ResponseEntity containing a paginated list of students.
-     */
+    // Fetch all students
     @GetMapping
-    public ResponseEntity<?> getAllStudents(@RequestParam(defaultValue = Constants.ZERO) int page,
-                                            @RequestParam(defaultValue = Constants.TEN) int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<StudentDTO> students = studentService.getAllStudents(pageable);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put(Constants.MESSAGE, Constants.STUDENTS_FETCHED);
-        response.put(Constants.STUDENTS, students.getContent());
-        response.put(Constants.CURRENT_PAGE, students.getNumber());
-        response.put(Constants.TOTAL_PAGES, students.getTotalPages());
-        response.put(Constants.TOTAL_STUDENTS, students.getTotalElements());
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<StudentDTO>> getAllStudents() {
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 
-    /**
-     * Retrieves a student by ID.
-     *
-     * @param id The ID of the student.
-     * @return ResponseEntity containing the student details.
-     */
-    @GetMapping(Constants.GET_MAPPING_STUDENT)
-    public ResponseEntity<?> getStudentById(@PathVariable Long id) {
+    // Fetch a student by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<StudentDTO> getStudentById(@PathVariable Long id) {
         StudentDTO student = studentService.getStudentById(id);
-        Map<String, Object> response = new HashMap<>();
-
-        if (student == null) {
-            response.put(Constants.MESSAGE, String.format(Constants.STUDENT_NOT_FOUND, id));
-            return ResponseEntity.status(404).body(response);
-        }
-
-        response.put(Constants.MESSAGE, String.format(Constants.STUDENT_FOUND, id));
-        response.put(Constants.STUDENT, student);
-        return ResponseEntity.ok(response);
+        return student != null ? ResponseEntity.ok(student) : ResponseEntity.notFound().build();
     }
 
-    /**
-     * Adds a new student.
-     *
-     * @param student The student details to be added.
-     * @return ResponseEntity containing the created student record.
-     */
+    // Add a new student
     @PostMapping
-    public ResponseEntity<?> addStudent(@RequestBody Student student) {
-        StudentDTO savedStudent = studentService.addStudent(student);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put(Constants.MESSAGE, String.format(Constants.STUDENT_ADDED, savedStudent.getId()));
-        response.put(Constants.STUDENT, savedStudent);
-
-        return ResponseEntity.status(201).body(response);
+    public ResponseEntity<StudentDTO> addStudent(@RequestBody Student student) {
+        return ResponseEntity.ok(studentService.addStudent(student));
     }
 
-    /**
-     * Updates an existing student record.
-     *
-     * @param id             The ID of the student to update.
-     * @param updatedStudent The updated student details.
-     * @return ResponseEntity containing the updated student record.
-     */
-    @PutMapping(Constants.PUT_MAPPING_STUDENT)
-    public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent) {
+    // Update a student
+    @PutMapping("/{id}")
+    public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent) {
         StudentDTO student = studentService.updateStudent(id, updatedStudent);
-        Map<String, Object> response = new HashMap<>();
-
-        if (student == null) {
-            response.put(Constants.MESSAGE, String.format(Constants.STUDENT_NOT_FOUND, id));
-            return ResponseEntity.status(404).body(response);
-        }
-
-        response.put(Constants.MESSAGE, String.format(Constants.STUDENT_UPDATED, id));
-        response.put(Constants.STUDENT, student);
-        return ResponseEntity.ok(response);
+        return student != null ? ResponseEntity.ok(student) : ResponseEntity.notFound().build();
     }
 
-    /**
-     * Deletes a student record.
-     *
-     * @param id The ID of the student to delete.
-     * @return ResponseEntity with a success or "Not Found" message.
-     */
-    @DeleteMapping(Constants.DELETE_MAPPING_STUDENT)
-    public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
-        Map<String, Object> response = new HashMap<>();
-
-        if (!studentService.deleteStudent(id)) {
-            response.put(Constants.MESSAGE, String.format(Constants.STUDENT_NOT_FOUND, id));
-            return ResponseEntity.status(404).body(response);
-        }
-
-        response.put(Constants.MESSAGE, String.format(Constants.STUDENT_DELETED, id));
-        return ResponseEntity.ok(response);
+    // Delete a student
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+        return studentService.deleteStudent(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
-    /**
-     * Retrieves a student along with their attendance and enrolled courses.
-     *
-     * @param id The ID of the student.
-     * @return ResponseEntity containing student details, attendance records, and courses.
-     */
-    @GetMapping(Constants.GET_MAPPING_ATTENDANCE)
-    public ResponseEntity<?> getStudentDetails(@PathVariable Long id) {
+    // Fetch a student with attendance and courses
+    @GetMapping("/{id}/details")
+    public ResponseEntity<Map<String, Object>> getStudentDetails(@PathVariable Long id) {
         StudentDTO student = studentService.getStudentById(id);
-        Map<String, Object> response = new HashMap<>();
-
         if (student == null) {
-            response.put(Constants.MESSAGE, String.format(Constants.STUDENT_NOT_FOUND, id));
-            return ResponseEntity.status(404).body(response);
+            return ResponseEntity.notFound().build();
         }
 
         // Fetch attendance and courses (with safe handling)
         Optional<List<Map<String, Object>>> attendanceRecords = externalDataService.getStudentAttendance(id);
         Optional<List<Map<String, Object>>> enrolledCourses = externalDataService.getStudentCourses(id);
 
-        response.put(Constants.MESSAGE, String.format(Constants.STUDENT_DETAILS_FETCHED, id));
-        response.put(Constants.STUDENT, student);
-        response.put(Constants.ATTENDANCERECORDS, attendanceRecords.orElse(List.of()));
-        response.put(Constants.ENROLLEDCOURSES, enrolledCourses.orElse(List.of()));
+        // Build response
+        Map<String, Object> response = new HashMap<>();
+        response.put("student", student);
+        response.put("attendanceRecords", attendanceRecords.orElse(List.of())); // Default to empty list if unavailable
+        response.put("enrolledCourses", enrolledCourses.orElse(List.of())); // Default to empty list if unavailable
 
         return ResponseEntity.ok(response);
     }
 }
-
