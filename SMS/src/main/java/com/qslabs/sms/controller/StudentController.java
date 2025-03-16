@@ -1,71 +1,90 @@
 package com.qslabs.sms.controller;
 
 import com.qslabs.sms.dto.StudentDTO;
+import com.qslabs.sms.model.Student;
 import com.qslabs.sms.service.StudentService;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import com.qslabs.sms.util.Constants;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
+/**
+ * REST Controller for managing student records.
+ * Provides endpoints to retrieve, add, update, and delete students,
+ * along with fetching additional details such as attendance and enrolled courses.
+ */
 @RestController
-@RequestMapping("api/students")
+@RequestMapping(Constants.REQUEST_MAPPING_STUDENT)
 public class StudentController {
+
     private final StudentService studentService;
 
+    /**
+     * Constructor for dependency injection of StudentService and ExternalDataService.
+     *
+     * @param studentService Service to handle student operations
+     */
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
-    // TODO add comments, add all strings in to a util file named constant, create an exception file other exceptions
 
+    /**
+     * Retrieves all students with pagination.
+     *
+     * @param limit Number of students per page
+     * @param offset Starting point for fetching students
+     * @return ResponseEntity containing a paginated list of students
+     */
     @GetMapping
-    public ResponseEntity<List<StudentDTO>> getAllStudents() {
-        return ResponseEntity.ok(studentService.getAllStudents());
+    public ResponseEntity<List<StudentDTO>> getAllStudents(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int offset) {
+        return ResponseEntity.ok(studentService.getAllStudents(limit, offset));
     }
 
-    @GetMapping("/{id}")
+    /**
+     * Retrieves a student by ID.
+     *
+     * @param id ID of the student
+     * @return ResponseEntity containing the student details if found, otherwise a 404 response
+     */
+    @GetMapping(Constants.GET_MAPPING_STUDENT)
     public ResponseEntity<StudentDTO> getStudentById(@PathVariable Long id) {
-        return ResponseEntity.ok(studentService.getStudentById(id));
+        StudentDTO student = studentService.getStudentById(id);
+        return student != null ? ResponseEntity.ok(student) : ResponseEntity.notFound().build();
     }
 
+    /**
+     * Adds a new student record.
+     *
+     * @param student The student details to be added
+     * @return ResponseEntity containing the added student record
+     */
     @PostMapping
-    public ResponseEntity<StudentDTO> createStudent(@RequestBody StudentDTO studentDTO) {
-        return ResponseEntity.ok(studentService.createStudent(studentDTO));
+    public ResponseEntity<StudentDTO> addStudent(@RequestBody Student student) {
+        return ResponseEntity.ok(studentService.addStudent(student));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @RequestBody StudentDTO studentDTO) {
-        return ResponseEntity.ok(studentService.updateStudent(id, studentDTO));
+    /**
+     * Updates an existing student record.
+     *
+     * @param id ID of the student to be updated
+     * @param updatedStudent The updated student details
+     * @return ResponseEntity containing the updated record if successful, otherwise a 404 response
+     */
+    @PutMapping(Constants.PUT_MAPPING_STUDENT)
+    public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent) {
+        StudentDTO student = studentService.updateStudent(id, updatedStudent);
+        return student != null ? ResponseEntity.ok(student) : ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteStudent(@PathVariable Long id) {
-        studentService.deleteStudent(id);
-        return ResponseEntity.ok("Student deleted successfully");
-    }
-
-    @PostMapping("/{id}/upload")
-    public ResponseEntity<String> uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(studentService.uploadProfilePicture(id, file));
-    }
-
-    // Export student data to Excel
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportStudentsToExcel() {
-        ByteArrayInputStream stream = studentService.exportStudentsToExcel();
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=students.xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(stream.readAllBytes());
-    }
-
-    // Import student data from Excel
-    @PostMapping("/import")
-    public ResponseEntity<String> importStudentsFromExcel(@RequestParam("file") MultipartFile file) {
-        studentService.importStudentsFromExcel(file);
-        return ResponseEntity.ok("Students imported successfully!");
+    /**
+     * Deletes a student record by ID.
+     *
+     * @param id ID of the student to be deleted
+     * @return ResponseEntity with no content if successful, otherwise a 404 response
+     */
+    @DeleteMapping(Constants.DELETE_MAPPING_STUDENT)
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+        return studentService.deleteStudent(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
