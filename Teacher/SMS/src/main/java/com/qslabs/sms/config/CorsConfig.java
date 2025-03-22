@@ -15,7 +15,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/teachers/**").allowedOrigins("*").allowedMethods("GET", "POST", "PUT", "DELETE");
+                registry.addMapping("/api/teachers/**")
+                        .allowedOrigins("http://localhost:5173","http://172.236.144.75:5432")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }

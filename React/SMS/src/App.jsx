@@ -13,7 +13,12 @@ function App() {
 
     const fetchTeachers = async () => {
         try {
-            const response = await axios.get(BASE_URL);
+            const response = await axios.get(BASE_URL,{
+                    auth: {
+                        username: 'user',
+                        password: 'user'
+                    }
+            });
             setTeachers(response.data);
         } catch (error) {
             console.error("Error fetching teachers:", error);
@@ -22,7 +27,12 @@ function App() {
 
     const fetchTeacher = async (id) => {
         try {
-            const response = await axios.get(`${BASE_URL}/${id}`);
+            const response = await axios.get(`${BASE_URL}/${id}`,{
+                    auth: {
+                        username: 'user',
+                        password: 'user'
+                    }
+            });
             setTeacher(response.data);
         } catch (error) {
             console.error("Error fetching teacher:", error);
@@ -31,7 +41,12 @@ function App() {
 
     const handleCreate = async () => {
         try {
-            await axios.post(BASE_URL, teacher);
+            await axios.post(BASE_URL, teacher,{
+                    auth: {
+                        username: 'user',
+                        password: 'user'
+                    }
+            });
             fetchTeachers(); // Refresh list
             setTeacher({ name: "", email: "", phone: "",address: "",dob: "",gender: "",status: "",role: "" });
         } catch (error) {
@@ -41,7 +56,12 @@ function App() {
 
     const handleUpdate = async (i,id) => {
         try {
-            await axios.put(`${BASE_URL}/${id}`, teachers[i]);
+            await axios.put(`${BASE_URL}/${id}`, teachers[i],{
+                    auth: {
+                        username: 'user',
+                        password: 'user'
+                    }
+            });
             fetchTeachers(); // Refresh list
         } catch (error) {
             console.error("Error updating teacher:", error);
@@ -50,7 +70,12 @@ function App() {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`${BASE_URL}/${id}`);
+            await axios.delete(`${BASE_URL}/${id}`,{
+                    auth: {
+                        username: 'user',
+                        password: 'user'
+                    }
+            });
             fetchTeachers(); // Refresh list
         } catch (error) {
             console.error("Error deleting teacher:", error);

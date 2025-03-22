@@ -1,8 +1,8 @@
 package com.qslabs.sms.controller;
 
 import com.qslabs.sms.dto.TeacherDTO;
-import com.qslabs.sms.model.Teacher;
 import com.qslabs.sms.service.TeacherService;
+import com.qslabs.sms.service.TeacherServiceimpl;
 import com.qslabs.sms.util.Constant;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
