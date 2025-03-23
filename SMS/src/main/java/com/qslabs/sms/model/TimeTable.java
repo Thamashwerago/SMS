@@ -1,5 +1,6 @@
 package com.qslabs.sms.model;
 
+import com.qslabs.sms.dto.TimeTableDTO;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -20,6 +21,16 @@ public class TimeTable {
     private String classroom;
 
     // Constructors, Getters, and Setters
+    public TimeTable() {}
+
+    public TimeTable(TimeTableDTO timeTableDTO) {
+        this.date = timeTableDTO.getDate();
+        this.startTime = timeTableDTO.getStartTime();
+        this.endTime = timeTableDTO.getEndTime();
+        this.teacherId = timeTableDTO.getId();
+        this.courseId = timeTableDTO.getCourseId();
+        this.classroom = timeTableDTO.getClassroom();
+    }
 
     public String getClassroom() {
         return classroom;

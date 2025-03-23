@@ -10,21 +10,19 @@ public class TimeTableDTO {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private String teacherName;
-    private String courseName;
-    private String classroom;
     private Long teacherId;
+    private Long courseId;
+    private String classroom;
 
     // Constructors, Getters, and Setters
     public TimeTableDTO() {}
 
-    public TimeTableDTO(Long id, LocalDate date, LocalTime startTime, LocalTime endTime,Long teacherId, String courseName, String classroom) {
-        this.id = id;
+    public TimeTableDTO(LocalDate date, LocalTime startTime, LocalTime endTime,Long teacherId, Long courseId, String classroom) {
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
         this.teacherId = teacherId;
-        this.courseName = courseName;
+        this.courseId = courseId;
         this.classroom = classroom;
     }
 
@@ -33,10 +31,9 @@ public class TimeTableDTO {
         this.date = timetable.getDate();
         this.startTime = timetable.getStartTime();
         this.endTime = timetable.getEndTime();
-        this.courseName = timetable.getClassroom();
+        this.courseId = timetable.getCourseId();
         this.teacherId = timetable.getTeacherId();
-        this.classroom = classroom;
-
+        this.classroom = timetable.getClassroom();
     }
 
     public Long getId() {
@@ -71,27 +68,27 @@ public class TimeTableDTO {
         this.endTime = endTime;
     }
 
-    public String getTeacherName() {
-        return teacherName;
-    }
-
-    public void setTeacherName(String teacherName) {
-        this.teacherName = teacherName;
-    }
-
-    public String getCourseName() {
-        return courseName;
-    }
-
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
-    }
-
     public String getClassroom() {
         return classroom;
     }
 
     public void setClassroom(String classroom) {
         this.classroom = classroom;
+    }
+
+    public Long getTeacherId() {
+        return teacherId;
+    }
+
+    public void setTeacherId(Long teacherId) {
+        this.teacherId = teacherId;
+    }
+
+    public Long getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Long courseId) {
+        this.courseId = courseId;
     }
 }

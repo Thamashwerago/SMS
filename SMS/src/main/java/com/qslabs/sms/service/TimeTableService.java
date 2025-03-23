@@ -8,7 +8,7 @@ import java.util.List;
 public interface TimeTableService {
     List<TimeTableDTO> getAllTimeTables();
     TimeTableDTO getTimeTableById(Long id);
-    TimeTableDTO createTimeTable(TimeTable timeTable);
-    TimeTableDTO updateTimeTable(Long id, TimeTable updatedTimeTable);
+    TimeTableDTO createTimeTable(TimeTableDTO timeTableDTO);
+    TimeTableDTO updateTimeTable(Long id, TimeTableDTO timeTableDTO);
     boolean deleteTimeTable(Long id);
 }

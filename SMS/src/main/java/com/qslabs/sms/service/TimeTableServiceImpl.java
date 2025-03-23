@@ -1,6 +1,7 @@
 package com.qslabs.sms.service;
 
 import com.qslabs.sms.dto.TimeTableDTO;
+import com.qslabs.sms.exception.ResourceNotFoundException;
 import com.qslabs.sms.exception.TimeTableNotFoundException;
 import com.qslabs.sms.model.TimeTable;
 import com.qslabs.sms.repository.TimeTableRepository;
@@ -28,37 +29,35 @@ public class TimeTableServiceImpl implements TimeTableService {
 
     @Override
     public TimeTableDTO getTimeTableById(Long id) {
-        TimeTable timeTable = repository.findById(id).orElseThrow(null);
+        TimeTable timeTable = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("TimeTable not found"));
         return new TimeTableDTO(timeTable);
     }
 
     @Override
-    public TimeTableDTO createTimeTable(TimeTable timeTable) {
-        return null;
+    public TimeTableDTO createTimeTable(TimeTableDTO timeTableDTO) {
+        TimeTable timeTable = new TimeTable(timeTableDTO);
+        timeTable = repository.save(timeTable);
+        return new TimeTableDTO(timeTable);
     }
 
     @Override
-    public TimeTableDTO updateTimeTable(Long id, TimeTable updatedTimeTable) {
-        if (!repository.existsById(id)) {
-            throw new TimeTableNotFoundException(id);
-        }
-        Optional<TimeTable> timeTable = repository.findById(id);
-        timeTable.get().setEndTime(updatedTimeTable.getEndTime());
-        timeTable.get().setClassroom(updatedTimeTable.getClassroom());
-        timeTable.get().setTeacherId(updatedTimeTable.getTeacherId());
-        timeTable.get().setCourseId(updatedTimeTable.getCourseId());
-        timeTable.get().setClassroom(updatedTimeTable.getClassroom());
-        timeTable = repository.save(timeTable);
+    public TimeTableDTO updateTimeTable(Long id, TimeTableDTO timeTableDTO) {
+        TimeTable timeTable = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("TimeTable not found with id: " + id));
 
-        return new TimeTableDTO(timeTable.orElse(null));
+        timeTable.setDate(timeTableDTO.getDate());
+        timeTable.setStartTime(timeTableDTO.getStartTime());
+        timeTable.setEndTime(timeTableDTO.getEndTime());
+        timeTable.setTeacherId(timeTableDTO.getTeacherId());
+        timeTable.setCourseId(timeTableDTO.getCourseId());
+        timeTable.setClassroom(timeTableDTO.getClassroom());
+        timeTable = repository.save(timeTable);
+        return new TimeTableDTO(timeTable);
     }
 
     @Override
     public boolean deleteTimeTable(Long id) {
-        if (!repository.existsById(id)) {
-            throw new TimeTableNotFoundException(id);
-        }
-        repository.deleteById(id);
+        TimeTable timeTable = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("TimeTable  not found with id: " + id));
+        repository.delete(timeTable);
         return true;
     }
 }
