@@ -1,5 +1,6 @@
 package com.qslabs.sms.model;
 
+import com.qslabs.sms.dto.AttendanceDTO;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -11,16 +12,18 @@ public class Attendance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long studentId;
+    private Long courseId;
     private LocalDate date;
     private String status;
 
     public Attendance() {
     }
 
-    public Attendance(Long studentId, LocalDate date, String status) {
-        this.studentId = studentId;
-        this.date = date;
-        this.status = status;
+    public Attendance(AttendanceDTO attendanceDTO) {
+        this.studentId = attendanceDTO.getStudentId();
+        this.courseId = attendanceDTO.getCourseId();
+        this.date = attendanceDTO.getDate();
+        this.status = attendanceDTO.getStatus();
     }
 
     // Getters and Setters
@@ -37,6 +40,9 @@ public class Attendance {
     public void setStudentId(Long studentId) {
         this.studentId = studentId;
     }
+
+    public Long getCourseId() { return courseId; }
+    public void setCourseId(Long courseId) { this.courseId = courseId; }
 
     public LocalDate getDate() {
         return date;

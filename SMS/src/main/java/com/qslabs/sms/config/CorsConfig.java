@@ -13,12 +13,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*"); // Update frontend URLs
-                        /*.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("Authorization", "Content-Type")
-                        .allowCredentials(true) // Allow credentials for authentication
-                        .maxAge(3600);*/ // Cache preflight request for 1 hour
+                registry.addMapping("/api/attendance/**")
+                        .allowedOrigins("*") // Update frontend URLs
+                        .allowedMethods("GET", "POST", "PUT", "DELETE");
+                //.allowedHeaders("*");// Allow credentials for authentication
+                //.allowCredentials(true);
             }
         };
     }
