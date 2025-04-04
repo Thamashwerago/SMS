@@ -1,0 +1,42 @@
+services:
+  attendance_management:
+    build:
+      context: Attendance_Management/SMS
+    container_name: attendance_management
+    ports:
+      - "8081:8080"
+
+  course_management:
+    build:
+      context: Course_Management/SMS
+    container_name: course_management
+    ports:
+      - "8082:8080"
+
+  teacher_management:
+    build:
+      context: Teacher_Management/SMS
+    container_name: teacher_management
+    ports:
+      - "8083:8080"
+
+  timetable_management:
+    build:
+      context: TimeTable_Management/SMS
+    container_name: timeTable_management
+    ports:
+      - "8084:8080"
+
+  user_management:
+    build:
+      context: User_Management/SMS
+    container_name: user_management
+    ports:
+      - "8085:8080"
+
+  student_management:
+    build:
+      context: Student_Management/SMS
+    container_name: student_management
+    ports:
+      - "8086:8080"
