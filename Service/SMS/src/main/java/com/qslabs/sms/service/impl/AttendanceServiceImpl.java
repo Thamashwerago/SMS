@@ -12,12 +12,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// TODO class->interface
-// only signature
-//Create a new class - AttendanceServiceImpl - Move below code to it
-// Implement from AttendanceService
-// Create a NotFoundException (Super class)- studentIdNotFound (inherited class)
-
 /**
  * Implementation of the AttendanceService interface.
  * Handles business logic related to student attendance records.
@@ -49,7 +43,8 @@ public class AttendanceServiceImpl implements AttendanceService {
      */
     @Override
     public AttendanceDTO getAttendanceById(Long id) {
-        Attendance attendance = attendanceRepository.findById(id).orElseThrow(AttendanceNotFoundException::new);
+        Attendance attendance = attendanceRepository.findById(id)
+                .orElseThrow(AttendanceNotFoundException::new);
         return new AttendanceDTO(attendance);
     }
 
@@ -62,7 +57,8 @@ public class AttendanceServiceImpl implements AttendanceService {
      */
     @Override
     public AttendanceDTO updateAttendance(Long id, AttendanceDTO attendanceDTO) {
-        Attendance attendance = attendanceRepository.findById(id).orElseThrow(() -> new AttendanceNotFoundException(" with id: " + id));
+        Attendance attendance = attendanceRepository.findById(id)
+                .orElseThrow(() -> new AttendanceNotFoundException(" with id: " + id));
 
         attendance.setUserId(attendanceDTO.getUserId());
         attendance.setCourseId(attendanceDTO.getCourseId());
@@ -135,4 +131,5 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<Attendance> attendanceList = attendanceRepository.findByUserIdAndCourseId(studentId, courseId);
         return attendanceList.stream().map(AttendanceDTO::new).collect(Collectors.toList());
     }
+
 }

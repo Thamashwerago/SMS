@@ -1,53 +1,41 @@
-// src/components/common/Sidebar.tsx
-import React, { useMemo } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import React, { useMemo } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  SIDEBAR_HEADER,
+  DEFAULT_ROLE,
+  NAV_LINKS,
+} from "../../constants/components/sidebarStrings";
 
-// Define a static mapping of navigation links per role.
-const navLinksMap: Record<string, Array<{ name: string; path: string }>> = {
-  admin: [
-    { name: 'Dashboard', path: 'dashboard' },
-    { name: 'User Management', path: 'user-management' },
-    { name: 'Student Management', path: 'student-management' },
-    { name: 'Teacher Management', path: 'teacher-management' },
-    { name: 'Course Management', path: 'course-management' },
-    { name: 'Timetable Management', path: 'timetable-management' },
-    { name: 'Attendance Management', path: 'attendance-management' },
-    { name: 'Settings', path: 'settings' },
-  ],
-  student: [
-    { name: 'Dashboard', path: 'dashboard' },
-    { name: 'Courses', path: 'courses' },
-    { name: 'Timetable', path: 'timetable' },
-    { name: 'Attendance', path: 'attendance' },
-    { name: 'Settings', path: 'settings' },
-  ],
-  teacher: [
-    { name: 'Dashboard', path: 'dashboard' },
-    { name: 'Courses', path: 'courses' },
-    { name: 'Timetable', path: 'timetable' },
-    { name: 'Attendance', path: 'attendance' },
-    { name: 'Settings', path: 'settings' },
-  ],
-};
-
+/**
+ * Sidebar Component
+ * -----------------
+ * Renders the navigation sidebar with links based on the user role.
+ * The user role is extracted from the first segment of the URL,
+ * and if not found, defaults to 'student'.
+ *
+ * @returns JSX Element representing the sidebar.
+ */
 const Sidebar: React.FC = () => {
   const location = useLocation();
 
-  // Extract the user role from the first URL segment.
+  // Extract the user role from the URL (first segment) or use the default role.
   const role = useMemo(() => {
-    const segments = location.pathname.split('/').filter(Boolean);
-    return segments[0] || 'student'; // Default to student if no role found.
+    const segments = location.pathname.split("/").filter(Boolean);
+    return segments[0] || DEFAULT_ROLE;
   }, [location.pathname]);
 
-  // Get the appropriate links for the current role.
-  const links = useMemo(() => navLinksMap[role] || navLinksMap.student, [role]);
+  // Retrieve the navigation links based on the current role.
+  const links = useMemo(
+    () => NAV_LINKS[role] || NAV_LINKS[DEFAULT_ROLE],
+    [role]
+  );
 
   return (
     <aside className="w-64 bg-gray-800 text-white min-h-screen p-6 shadow-lg">
       {/* Sidebar Header */}
       <header>
         <h2 className="text-2xl font-bold mb-6 uppercase tracking-wide">
-          School Management System
+          {SIDEBAR_HEADER}
         </h2>
       </header>
       {/* Navigation Menu */}
@@ -59,7 +47,7 @@ const Sidebar: React.FC = () => {
                 to={`/${role}/${link.path}`}
                 className={({ isActive }) =>
                   `block p-3 rounded transition-colors duration-200 ${
-                    isActive ? 'bg-gray-700' : 'hover:bg-gray-700'
+                    isActive ? "bg-gray-700" : "hover:bg-gray-700"
                   }`
                 }
               >

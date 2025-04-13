@@ -41,7 +41,7 @@ public class Constants {
     public static final String REQUEST_MAPPING_STUDENT = "/api/student";
 
     /**
-     * Name of the students table in the database.
+     * Name of the student's table in the database.
      */
     public static final String STUDENT_TABLE = "students";
 
