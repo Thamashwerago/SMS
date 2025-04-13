@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Dummy users list to simulate user lookup
 const dummyUsers = [
-  { email: 'admin@example.com', password: 'admin123', role: 'admin', name: 'Admin User' },
+  { email: 'admin@example.com', password: 'admin123', role: 'ADMIN', name: 'Admin User' },
   { email: 'teacher@example.com', password: 'teacher123', role: 'teacher', name: 'Teacher User' },
   { email: 'student@example.com', password: 'student123', role: 'student', name: 'Student User' },
 ];
@@ -52,6 +52,8 @@ const Login: React.FC = () => {
     } else {
       sessionStorage.setItem('authToken', authToken);
     }
+
+    sessionStorage.setItem('user', JSON.stringify(foundUser));
 
     // Redirect user based on their role
     navigate(`/${foundUser.role}/dashboard`);

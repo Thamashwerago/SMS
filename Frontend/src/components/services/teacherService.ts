@@ -32,6 +32,10 @@ const teacherService = {
   getAll: async (page: number = 0, size: number = 100): Promise<Teacher[]> => {
     const response = await axios.get(`${API_BASE_URL}/teacher`, {
       params: { page, size },
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
     });
     // Assuming the backend response structure is a Page with a "content" array.
     return response.data.content;
@@ -44,7 +48,12 @@ const teacherService = {
    * @returns A promise resolving to the Teacher object.
    */
   getById: async (id: number): Promise<Teacher> => {
-    const response = await axios.get(`${API_BASE_URL}/teacher/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/teacher/${id}`,{
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -57,7 +66,12 @@ const teacherService = {
    * @returns A promise resolving to the created Teacher object.
    */
   create: async (teacher: Omit<Teacher, 'id'>): Promise<Teacher> => {
-    const response = await axios.post(`${API_BASE_URL}/teacher`, teacher);
+    const response = await axios.post(`${API_BASE_URL}/teacher`, teacher,{
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -69,7 +83,12 @@ const teacherService = {
    * @returns A promise resolving to the updated Teacher object.
    */
   update: async (id: number, teacher: Partial<Teacher>): Promise<Teacher> => {
-    const response = await axios.put(`${API_BASE_URL}/teacher/${id}`, teacher);
+    const response = await axios.put(`${API_BASE_URL}/teacher/${id}`, teacher,{
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+      });
     return response.data;
   },
 
@@ -80,7 +99,14 @@ const teacherService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/teacher/${id}`);
+    await axios.delete(`${API_BASE_URL}/teacher/${id}`,
+      {
+        auth: {
+          username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+          password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+        }
+      }
+    );
   },
 };
 
