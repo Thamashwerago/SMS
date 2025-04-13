@@ -1,7 +1,7 @@
 // src/services/timetableService.ts
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL ?? 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL ?? '172.236.144.75:8081/api';
 
 /**
  * Interface representing a timetable entry matching the backend TimeTable model.
