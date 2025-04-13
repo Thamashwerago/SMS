@@ -1,72 +1,205 @@
 // src/pages/Admin/Dashboard.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Navbar from '../../components/common/Navbar';
 import Card from '../../components/common/Card';
 import Chart from '../../components/common/Chart';
+import CommonTable, { Column } from '../../components/common/Table';
+import Button from '../../components/common/Button';
+import CourseCard, { AggregatedCourseAttendance } from '../../components/common/CourseCard';
+
+// Import service modules
+import teacherService from '../../components/services/teacherService';
+import studentService from '../../components/services/studentService';
+import courseService from '../../components/services/courseService';
+import timetableService from '../../components/services/timetableService';
+import attendanceService from '../../components/services/attendanceService';
+
+// Extracted string constants for easy maintenance
+const STRINGS = {
+  // Section Titles & Labels
+  DASHBOARD_TITLE: 'Admin Dashboard',
+  TOTAL_STUDENTS: 'Total Students',
+  TOTAL_TEACHERS: 'Total Teachers',
+  TOTAL_COURSES: 'Total Courses',
+  TODAYS_CLASSES: "Today's Classes",
+  AVG_ATTENDANCE: 'Avg. Attendance',
+  INSTITUTION_OVERVIEW: 'Institution Overview',
+  ATTENDANCE_DISTRIBUTION: 'Attendance Distribution',
+  REFRESH_DATA: 'Refresh Data',
+  UPCOMING_CLASSES: 'Upcoming Classes',
+  FEATURED_COURSES: 'Featured Courses',
+  NO_DATA: 'No data available.',
+
+  // Error messages
+  ERROR_FETCHING_STUDENTS: 'Error fetching students data',
+  ERROR_FETCHING_TEACHERS: 'Error fetching teachers data',
+  ERROR_FETCHING_COURSES: 'Error fetching courses data',
+  ERROR_FETCHING_TIMETABLE: 'Error fetching timetable data',
+  ERROR_FETCHING_ATTENDANCE: 'Error fetching attendance data',
+};
+
+// Define TypeScript interfaces if needed
+interface TimetableEntry {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  teacherId: number;
+  courseId: number;
+  classroom: string;
+}
+
+interface Course {
+  id: number;
+  name: string;
+  // Add other properties as needed
+}
+
+// Define columns for the CommonTable component (Upcoming Classes)
+const timetableColumns: Column<TimetableEntry>[] = [
+  {
+    header: 'Start Time',
+    accessor: 'startTime',
+  },
+  {
+    header: 'End Time',
+    accessor: 'endTime',
+  },
+  {
+    header: 'Course ID',
+    accessor: 'courseId',
+  },
+  {
+    header: 'Classroom',
+    accessor: 'classroom',
+  },
+];
+
+// Helper function to transform course data to the format expected by CourseCard
+const transformCourseToCourseCardData = (course: Course): AggregatedCourseAttendance => {
+  return {
+    courseId: course.id,
+    courseName: course.name,
+    teacher: 'Not Assigned', // Placeholder value
+    totalStudents: 0,         // Placeholder value
+    present: 0,               // Placeholder value
+    updatedAt: 'N/A',         // Placeholder value
+    records: [],              // No attendance records available here
+  };
+};
 
 const Dashboard: React.FC = () => {
-  // Dummy metrics (to be replaced with real backend data)
+  // Loading state to control UI feedback during data fetches
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // States for core metrics
+  const [totalStudents, setTotalStudents] = useState<number>(0);
+  const [totalTeachers, setTotalTeachers] = useState<number>(0);
+  const [totalCourses, setTotalCourses] = useState<number>(0);
+  const [todaysClasses, setTodaysClasses] = useState<number>(0);
+  const [averageAttendance, setAverageAttendance] = useState<number>(0);
+  const [attendanceCounts, setAttendanceCounts] = useState({ present: 0, absent: 0 });
+
+  // Additional states for detailed data display
+  const [timetableEntries, setTimetableEntries] = useState<TimetableEntry[]>([]);
+  const [coursesList, setCoursesList] = useState<Course[]>([]);
+
+  /**
+   * refreshData
+   * -----------
+   * Fetches data from the backend services. Each service call is wrapped in its own try–catch block to manage exceptions separately.
+   */
+  const refreshData = useCallback(async () => {
+    setLoading(true);
+
+    // Fetch student data
+    try {
+      const students = await studentService.getAll();
+      setTotalStudents(students.length);
+    } catch (error) {
+      console.error(STRINGS.ERROR_FETCHING_STUDENTS, error);
+    }
+
+    // Fetch teacher data
+    try {
+      const teachers = await teacherService.getAll();
+      setTotalTeachers(teachers.length);
+    } catch (error) {
+      console.error(STRINGS.ERROR_FETCHING_TEACHERS, error);
+    }
+
+    // Fetch courses data and update courses list for the featured section
+    try {
+      const courses = await courseService.getAll();
+      setTotalCourses(courses.length);
+      setCoursesList(courses);
+    } catch (error) {
+      console.error(STRINGS.ERROR_FETCHING_COURSES, error);
+    }
+
+    // Fetch timetable data and filter today's entries
+    try {
+        const timetables = await timetableService.getAll();
+        const today = new Date().toISOString().slice(0, 10);
+        const todaysEntries = timetables.filter((entry: TimetableEntry) => entry.date === today);
+        setTodaysClasses(todaysEntries.length);
+        setTimetableEntries(todaysEntries);
+      } catch (error) {
+        console.error(STRINGS.ERROR_FETCHING_TIMETABLE, error);
+      }
+      
+      // Fetch attendance data and compute attendance metrics
+    try {
+      const attendances = await attendanceService.getAll();
+      const totalAttendance = attendances.length;
+      const presentCount = attendances.filter((a: { status: string }) => a.status.toLowerCase() === 'present').length;
+      const absentCount = totalAttendance - presentCount;
+      const avgAttendance = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0;
+      setAverageAttendance(avgAttendance);
+      setAttendanceCounts({ present: presentCount, absent: absentCount });
+    } catch (error) {
+      console.error(STRINGS.ERROR_FETCHING_ATTENDANCE, error);
+    }
+    
+    setLoading(false);
+  }, []);
+
+  // Fetch data once when the component mounts
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // Consolidate core metrics for display in cards
   const metrics = {
-    totalStudents: 750,
-    totalTeachers: 65,
-    totalCourses: 25,
-    todaysClasses: 10,
-    averageAttendance: 95,
+    totalStudents,
+    totalTeachers,
+    totalCourses,
+    todaysClasses,
+    averageAttendance,
   };
 
-  // Dummy data for recent activities
-  const recentActivities = [
-    { id: 1, activity: 'New student enrolled', time: '09:45 AM' },
-    { id: 2, activity: 'Teacher updated profile', time: '10:30 AM' },
-    { id: 3, activity: 'Course "Quantum Physics" added', time: '11:15 AM' },
-  ];
-
-  // State for chart data
-  const [enrollmentTrendData, setEnrollmentTrendData] = useState({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-    enrollments: [200, 300, 400, 350, 450, 500, 550],
-  });
-
-  const [attendanceDistribution, setAttendanceDistribution] = useState({
-    present: 95,
-    absent: 5,
-  });
-
-  // Function to refresh chart data with new dummy values
-  const refreshChartData = () => {
-    const newEnrollments = enrollmentTrendData.labels.map(() => Math.floor(Math.random() * 400) + 200);
-    setEnrollmentTrendData({ ...enrollmentTrendData, enrollments: newEnrollments });
-
-    const newPresent = Math.floor(Math.random() * 10) + 90; // generates a number between 90 and 99
-    setAttendanceDistribution({ present: newPresent, absent: 100 - newPresent });
-  };
-
-  // State and filter for recent activities search
-  const [searchTerm, setSearchTerm] = useState('');
-  const filteredActivities = recentActivities.filter((item) =>
-    item.activity.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Memoized data for the enrollment trends line chart
-  const lineChartData = useMemo(() => ({
-    labels: enrollmentTrendData.labels,
+  // Bar Chart Data & Options for the Institution Overview
+  const barChartData = useMemo(() => ({
+    labels: ['Students', 'Teachers', 'Courses'],
     datasets: [
       {
-        label: 'Enrollments',
-        data: enrollmentTrendData.enrollments,
-        borderColor: 'rgba(0,230,255,0.8)',
-        backgroundColor: 'rgba(0,230,255,0.2)',
-        tension: 0.4,
+        label: 'Count',
+        data: [totalStudents, totalTeachers, totalCourses],
+        backgroundColor: [
+          'rgba(75,192,192,0.6)',
+          'rgba(153,102,255,0.6)',
+          'rgba(255,159,64,0.6)',
+        ],
       },
     ],
-  }), [enrollmentTrendData]);
+  }), [totalStudents, totalTeachers, totalCourses]);
 
-  const lineChartOptions = useMemo(() => ({
+  const barChartOptions = useMemo(() => ({
     responsive: true,
     plugins: {
       legend: { position: 'top' as const, labels: { color: 'white' } },
-      title: { display: true, text: 'Enrollment Trends', color: 'white' },
+      title: { display: true, text: STRINGS.INSTITUTION_OVERVIEW, color: 'white' },
     },
     scales: {
       x: {
@@ -80,108 +213,110 @@ const Dashboard: React.FC = () => {
     },
   }), []);
 
-  // Memoized data for the attendance distribution pie chart
+  // Pie Chart Data & Options for Attendance Distribution
   const pieChartData = useMemo(() => ({
     labels: ['Present', 'Absent'],
     datasets: [
       {
-        label: 'Attendance Distribution',
-        data: [attendanceDistribution.present, attendanceDistribution.absent],
+        label: STRINGS.ATTENDANCE_DISTRIBUTION,
+        data: [attendanceCounts.present, attendanceCounts.absent],
         backgroundColor: ['rgba(40,167,69,0.8)', 'rgba(255,193,7,0.8)'],
         hoverBackgroundColor: ['rgba(40,167,69,1)', 'rgba(255,193,7,1)'],
       },
     ],
-  }), [attendanceDistribution]);
+  }), [attendanceCounts]);
 
   const pieChartOptions = useMemo(() => ({
     responsive: true,
     plugins: {
       legend: { position: 'top' as const, labels: { color: 'white' } },
-      title: { display: true, text: 'Attendance Distribution', color: 'white' },
+      title: { display: true, text: STRINGS.ATTENDANCE_DISTRIBUTION, color: 'white' },
     },
   }), []);
 
+  // Transform the courses list for the featured courses section (limit to 3)
+  const featuredCourses = useMemo(() => {
+    return coursesList.slice(0, 3).map(transformCourseToCourseCardData);
+  }, [coursesList]);
+
   return (
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
+      {/* Sidebar Navigation */}
       <Sidebar />
       <div className="flex-1 flex flex-col">
+        {/* Top Navbar */}
         <Navbar />
         <main className="p-4 sm:p-8">
           {/* Overview Cards Section */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             <div className="hover:scale-105 transition-transform duration-300">
-              <Card title="Total Students" value={metrics.totalStudents} icon="👨‍🎓" />
+              <Card title={STRINGS.TOTAL_STUDENTS} value={metrics.totalStudents} icon="👨‍🎓" />
             </div>
             <div className="hover:scale-105 transition-transform duration-300">
-              <Card title="Total Teachers" value={metrics.totalTeachers} icon="👩‍🏫" />
+              <Card title={STRINGS.TOTAL_TEACHERS} value={metrics.totalTeachers} icon="👩‍🏫" />
             </div>
             <div className="hover:scale-105 transition-transform duration-300">
-              <Card title="Total Courses" value={metrics.totalCourses} icon="📚" />
+              <Card title={STRINGS.TOTAL_COURSES} value={metrics.totalCourses} icon="📚" />
             </div>
             <div className="hover:scale-105 transition-transform duration-300">
-              <Card title="Today's Classes" value={metrics.todaysClasses} icon="🗓️" />
+              <Card title={STRINGS.TODAYS_CLASSES} value={metrics.todaysClasses} icon="🗓️" />
             </div>
             <div className="hover:scale-105 transition-transform duration-300">
-              <Card title="Avg. Attendance" value={`${metrics.averageAttendance}%`} icon="✅" />
+              <Card title={STRINGS.AVG_ATTENDANCE} value={`${metrics.averageAttendance}%`} icon="✅" />
             </div>
           </section>
 
-          {/* Refresh Button for Charts */}
+          {/* Refresh Data Button */}
           <div className="flex justify-end mb-4">
-            <button 
-              onClick={refreshChartData}
-              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 transition-colors rounded text-white"
-            >
-              Refresh Charts
-            </button>
+            <Button 
+              label={STRINGS.REFRESH_DATA} 
+              onClick={refreshData} 
+              isLoading={loading} 
+              variant="primary" 
+            />
           </div>
 
           {/* Charts Section */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Institution Overview Bar Chart */}
             <div className="bg-black bg-opacity-50 border border-indigo-500 p-6 sm:p-8 rounded-xl shadow-xl">
-              <Chart type="line" data={lineChartData} options={lineChartOptions} />
+              <Chart type="bar" data={barChartData} options={barChartOptions} />
             </div>
+            {/* Attendance Distribution Pie Chart */}
             <div className="bg-black bg-opacity-50 border border-indigo-500 p-6 sm:p-8 rounded-xl shadow-xl">
               <Chart type="pie" data={pieChartData} options={pieChartOptions} />
             </div>
           </section>
 
-          {/* Recent Activities Section */}
-          <section className="bg-black bg-opacity-50 border border-indigo-500 p-6 sm:p-8 rounded-xl shadow-xl">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-white">Recent Activities</h2>
-              <div className="mt-4 sm:mt-0">
-                <input
-                  type="text"
-                  placeholder="Search activities..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-4 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-white">
-                <thead>
-                  <tr>
-                    <th className="border-b border-gray-600 pb-3 text-left">Activity</th>
-                    <th className="border-b border-gray-600 pb-3 text-left">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredActivities.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-800 transition-colors">
-                      <td className="py-4">{item.activity}</td>
-                      <td className="py-4">{item.time}</td>
-                    </tr>
-                  ))}
-                  {filteredActivities.length === 0 && (
-                    <tr>
-                      <td className="py-4" colSpan={2}>No activities found.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {/* Upcoming Classes Section using CommonTable */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4">{STRINGS.UPCOMING_CLASSES}</h2>
+            {timetableEntries.length > 0 ? (
+              <CommonTable 
+                columns={timetableColumns} 
+                data={timetableEntries} 
+                onRowClick={(row) => console.log('Timetable row clicked', row)} 
+              />
+            ) : (
+              <p className="text-white">{STRINGS.NO_DATA}</p>
+            )}
+          </section>
+
+          {/* Featured Courses Section using CourseCard */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4">{STRINGS.FEATURED_COURSES}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCourses.length > 0 ? (
+                featuredCourses.map((course) => (
+                  <CourseCard 
+                    key={course.courseId} 
+                    course={course} 
+                    onClick={(courseData) => console.log('Course clicked', courseData)} 
+                  />
+                ))
+              ) : (
+                <p className="text-white">{STRINGS.NO_DATA}</p>
+              )}
             </div>
           </section>
         </main>

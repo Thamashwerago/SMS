@@ -1,103 +1,149 @@
-// src/pages/Admin/UserManagement.tsx
-import React, { useState, useMemo, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/common/Sidebar';
-import Navbar from '../../components/common/Navbar';
+import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
+import Navbar from "../../components/common/Navbar";
+import CommonTable, { Column } from "../../components/common/Table";
+import CommonButton from "../../components/common/Button";
+import userService from "../../components/services/userService";
+import {
+  USER_MANAGEMENT_HEADING,
+  SEARCH_PLACEHOLDER,
+  ADD_ADMIN_BUTTON_LABEL,
+} from "../../constants/admin/userManagementStrings";
+import { FETCH_USERS_EXCEPTION } from "../../constants/exceptionMessages";
 
+/**
+ * User interface represents a user object fetched from the backend.
+ */
 interface User {
   id: number;
   username: string;
   email: string;
   password: string;
   role: string;
-  status: string;
+  status?: string;
 }
 
-// Dummy user data (to be replaced with API data)
-const initialUsers: User[] = [
-  { id: 1, username: 'alice', email: 'alice@example.com', password: 'pass123', role: 'Admin', status: 'Active' },
-  { id: 2, username: 'bob', email: 'bob@example.com', password: 'pass456', role: 'Student', status: 'Active' },
-  { id: 3, username: 'charlie', email: 'charlie@example.com', password: 'pass789', role: 'Teacher', status: 'Inactive' },
-  { id: 4, username: 'diana', email: 'diana@example.com', password: 'pass321', role: 'Admin', status: 'Active' },
-  // More dummy data can be added here...
-];
-
+/**
+ * UserManagement Component
+ * --------------------------
+ * Displays a table of users with search, sorting, and editing capabilities.
+ * User data is fetched from the backend using userService.getAll().
+ * The component utilizes CommonTable for rendering the table and CommonButton for actions.
+ * Exception messages and literal strings are imported from separate constants files.
+ */
 const UserManagement: React.FC = () => {
-  const [users] = useState<User[]>(initialUsers);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortColumn, setSortColumn] = useState<keyof User>('username');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editData, setEditData] = useState<{ username: string; email: string; password: string }>({
-    username: '',
-    email: '',
-    password: '',
-  });
-
   const navigate = useNavigate();
 
-  // Handler for search input changes.
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // State to store user data fetched from backend.
+  const [users, setUsers] = useState<User[]>([]);
+  // State for the search query input.
+  const [searchQuery, setSearchQuery] = useState("");
+  // States for editing user details.
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editData, setEditData] = useState<{
+    username: string;
+    email: string;
+    password: string;
+  }>({
+    username: "",
+    email: "",
+    password: "",
+  });
+  // State for error messages.
+  const [error, setError] = useState<string | null>(null);
+
+  /**
+   * useEffect - Fetch user data from the backend when the component mounts.
+   */
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Fetch all users using the userService.
+        const data = await userService.getAll();
+        // Map service data to ensure status is defined.
+        const mappedData = data.map((user: User) => ({
+          ...user,
+          status: user.status ?? "active",
+        }));
+        setUsers(mappedData);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError(FETCH_USERS_EXCEPTION);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  /**
+   * handleSearchChange - Updates the search query state as the user types.
+   * @param e - Input change event.
+   */
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  // Handler for sorting by column.
-  const handleSort = (column: keyof User) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  };
-
-  // Memoized filtering and sorting of users.
-  const filteredAndSortedUsers = useMemo(() => {
-    const filtered = users.filter((user) =>
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
+  /**
+   * filteredUsers - Filters the list of users based on the search query.
+   */
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) =>
+        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    filtered.sort((a, b) => {
-      let valA: string | number = a[sortColumn];
-      let valB: string | number = b[sortColumn];
-      // For numeric sort on id
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return sortDirection === 'asc' ? valA - valB : valB - valA;
-      }
-      // Otherwise string comparison
-      valA = valA.toString().toLowerCase();
-      valB = valB.toString().toLowerCase();
-      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return filtered;
-  }, [users, searchQuery, sortColumn, sortDirection]);
+  }, [users, searchQuery]);
 
-  // Handler when a user row is clicked.
+  /**
+   * columns - Defines the table columns for the CommonTable component.
+   */
+  const columns: Column<User>[] = useMemo(
+    () => [
+      { header: "User ID", accessor: "id" },
+      { header: "Username", accessor: "username" },
+      { header: "Role", accessor: "role" },
+    ],
+    []
+  );
+
+  /**
+   * handleRowClick - Opens the modal to edit user details.
+   * Initializes editData with the selected user's data.
+   * @param user - The selected user.
+   */
   const handleRowClick = (user: User) => {
     setSelectedUser(user);
-    // Initialize edit data from selected user.
-    setEditData({ username: user.username, email: user.email, password: user.password });
+    setEditData({
+      username: user.username,
+      email: user.email,
+      password: user.password,
+    });
     setIsEditing(false);
   };
 
-  // Handle changes in edit fields.
+  /**
+   * handleEditChange - Updates the editData state as input values change.
+   * @param e - Input change event.
+   */
   const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
     setEditData({ ...editData, [e.target.name]: e.target.value });
   };
 
-  // Toggle edit mode.
+  /**
+   * handleEditClick - Enables editing mode for the user details modal.
+   */
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
-  // Save edited data.
+  /**
+   * handleSave - Saves the edited user data.
+   * In a production scenario, an API call would update the backend.
+   */
   const handleSave = () => {
     if (selectedUser) {
-      // In a real app, an API call to update the user would go here.
       setSelectedUser({
         ...selectedUser,
         username: editData.username,
@@ -108,18 +154,26 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Cancel editing.
+  /**
+   * handleCancelEdit - Cancels editing and resets editData to the selected user's data.
+   */
   const handleCancelEdit = () => {
     setIsEditing(false);
     if (selectedUser) {
-      setEditData({ username: selectedUser.username, email: selectedUser.email, password: selectedUser.password });
+      setEditData({
+        username: selectedUser.username,
+        email: selectedUser.email,
+        password: selectedUser.password,
+      });
     }
   };
 
-  // Close the user details modal and navigate back to the management page.
+  /**
+   * handleClose - Closes the user details modal and resets the selected user.
+   */
   const handleClose = () => {
     setSelectedUser(null);
-    navigate('/admin/user-management');
+    navigate("/admin/user-management");
   };
 
   return (
@@ -130,95 +184,67 @@ const UserManagement: React.FC = () => {
         {/* Top Navbar */}
         <Navbar />
         <main className="p-8">
-          {/* Header Section */}
+          {/* Header Section with Search Input and Add Admin Button */}
           <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-              User Management
+              {USER_MANAGEMENT_HEADING}
             </h1>
             <div className="flex items-center mt-4 sm:mt-0">
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder={SEARCH_PLACEHOLDER}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-l-xl focus:outline-none text-white placeholder-gray-400"
               />
-              <button
-                onClick={() => navigate('/admin/add-admin')}
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-r-xl text-white font-bold transition duration-300"
-              >
-                Add Admin
-              </button>
+              <CommonButton
+                label={ADD_ADMIN_BUTTON_LABEL}
+                onClick={() => navigate("/admin/add-admin")}
+                className="rounded-r-xl"
+              />
             </div>
           </div>
 
-          {/* Users Table with advanced UI */}
-          <div className="overflow-auto max-h-[500px] bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl">
-            <table className="min-w-full text-white">
-              <thead className="bg-gray-800 sticky top-0 z-10">
-                <tr>
-                  <th
-                    onClick={() => handleSort('id')}
-                    className="cursor-pointer px-6 py-3 text-left text-sm font-medium uppercase tracking-wider"
-                  >
-                    User ID {sortColumn === 'id' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                  <th
-                    onClick={() => handleSort('username')}
-                    className="cursor-pointer px-6 py-3 text-left text-sm font-medium uppercase tracking-wider"
-                  >
-                    Username {sortColumn === 'username' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                  <th
-                    onClick={() => handleSort('role')}
-                    className="cursor-pointer px-6 py-3 text-left text-sm font-medium uppercase tracking-wider"
-                  >
-                    Role {sortColumn === 'role' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-black divide-y divide-gray-800">
-                {filteredAndSortedUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-gray-700 transition-colors cursor-pointer"
-                    onClick={() => handleRowClick(user)}
-                  >
-                    <td className="px-6 py-4">{user.id}</td>
-                    <td className="px-6 py-4">{user.username}</td>
-                    <td className="px-6 py-4">{user.role}</td>
-                  </tr>
-                ))}
-                {filteredAndSortedUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-4 text-center">
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Display error message if any */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">
+              {error}
+            </div>
+          )}
 
-          {/* Modal for Full User Details */}
+          {/* Common Table Component to display user data */}
+          <CommonTable
+            columns={columns}
+            data={filteredUsers}
+            initialSortColumn="username"
+            initialSortDirection="asc"
+            onRowClick={handleRowClick}
+          />
+
+          {/* User Details Modal */}
           {selectedUser && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
               <div className="bg-gray-800 p-8 rounded-xl border border-indigo-500 shadow-xl max-w-lg w-full mx-4 animate-fadeIn">
-                <h2 className="text-2xl font-bold text-white mb-4">User Details</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">
+                  User Details
+                </h2>
                 <div className="space-y-4">
                   <div>
-                    <span className="block text-white text-lg font-semibold">User ID:</span>
+                    <span className="block text-white text-lg font-semibold">
+                      User ID:
+                    </span>
                     <p className="text-gray-300">{selectedUser.id}</p>
                   </div>
                   <div>
-                    <span className="block text-white text-lg font-semibold">Username:</span>
+                    <span className="block text-white text-lg font-semibold">
+                      Username:
+                    </span>
                     {isEditing ? (
                       <input
                         type="text"
                         name="username"
                         value={editData.username}
                         onChange={handleEditChange}
-                        title="Username"
                         placeholder="Username"
                         className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
                       />
@@ -227,14 +253,15 @@ const UserManagement: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <span className="block text-white text-lg font-semibold">Email:</span>
+                    <span className="block text-white text-lg font-semibold">
+                      Email:
+                    </span>
                     {isEditing ? (
                       <input
                         type="email"
                         name="email"
                         value={editData.email}
                         onChange={handleEditChange}
-                        title="Email"
                         placeholder="Email"
                         className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
                       />
@@ -243,14 +270,15 @@ const UserManagement: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <span className="block text-white text-lg font-semibold">Password:</span>
+                    <span className="block text-white text-lg font-semibold">
+                      Password:
+                    </span>
                     {isEditing ? (
                       <input
                         type="text"
                         name="password"
                         value={editData.password}
                         onChange={handleEditChange}
-                        title="Password"
                         placeholder="Password"
                         className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
                       />
@@ -259,40 +287,38 @@ const UserManagement: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <span className="block text-white text-lg font-semibold">Role:</span>
+                    <span className="block text-white text-lg font-semibold">
+                      Role:
+                    </span>
                     <p className="text-gray-300">{selectedUser.role}</p>
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end space-x-4">
                   {isEditing ? (
                     <>
-                      <button
+                      <CommonButton
+                        label="Save"
                         onClick={handleSave}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md text-white font-bold transition duration-300"
-                      >
-                        Save
-                      </button>
-                      <button
+                        className="bg-green-600 hover:bg-green-700"
+                      />
+                      <CommonButton
+                        label="Cancel"
                         onClick={handleCancelEdit}
-                        className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-md text-white font-bold transition duration-300"
-                      >
-                        Cancel
-                      </button>
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                      />
                     </>
                   ) : (
-                    <button
+                    <CommonButton
+                      label="Edit"
                       onClick={handleEditClick}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-bold transition duration-300"
-                    >
-                      Edit
-                    </button>
+                      className="bg-blue-600 hover:bg-blue-700"
+                    />
                   )}
-                  <button
+                  <CommonButton
+                    label="Close"
                     onClick={handleClose}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white font-bold transition duration-300"
-                  >
-                    Close
-                  </button>
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  />
                 </div>
               </div>
             </div>

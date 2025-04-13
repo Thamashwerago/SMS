@@ -1,17 +1,35 @@
-// src/routes/AuthRoutes.tsx
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from '../pages/Auth/Login';
+import {
+  AUTH_LOGIN_PATH,
+  AUTH_FALLBACK_ROUTE,
+  AUTH_LOADING_MESSAGE,
+} from '../constants/RouteStrings';
 
+// Lazy load the Login page for performance optimization.
+const Login = lazy(() => import('../pages/Auth/Login'));
+
+/**
+ * AuthRoutes Component
+ * ----------------------
+ * Defines the routes for authentication.
+ * - Lazy loads the Login page.
+ * - Uses a Suspense component to show a fallback message while the Login page is loading.
+ * - Redirects any unknown authentication routes to the login page.
+ *
+ * @returns A JSX element representing authentication routes.
+ */
 const AuthRoutes: React.FC = () => {
   return (
-    <Routes>
-      {/* Authentication Pages */}
-      <Route path="/login" element={<Login />} />
-
-      {/* Fallback: redirect all unknown auth routes to /login */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    <Suspense fallback={<div className="text-center text-white mt-8">{AUTH_LOADING_MESSAGE}</div>}>
+      <Routes>
+        {/* Authentication Page: Login */}
+        <Route path={AUTH_LOGIN_PATH} element={<Login />} />
+        
+        {/* Fallback: Redirect all unknown auth routes to login */}
+        <Route path="*" element={<Navigate to={AUTH_FALLBACK_ROUTE} replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 
