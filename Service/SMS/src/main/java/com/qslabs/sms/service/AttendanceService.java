@@ -77,5 +77,4 @@ public interface AttendanceService {
      * @return list of AttendanceDTOs
      */
     List<AttendanceDTO> getAttendanceByStudentAndCourse(Long studentId, Long courseId);
-
 }

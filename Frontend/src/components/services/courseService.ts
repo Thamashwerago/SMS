@@ -36,6 +36,10 @@ const courseService = {
   getAll: async (page: number = 0, size: number = 100): Promise<Course[]> => {
     const response = await axios.get(`${API_BASE_URL}/courses`, {
       params: { page, size },
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
     });
     // If your backend returns a paginated response, adjust accordingly (e.g., return response.data.content).
     return response.data.content || response.data;
@@ -48,7 +52,12 @@ const courseService = {
    * @returns A promise resolving to a Course object.
    */
   getById: async (id: number): Promise<Course> => {
-    const response = await axios.get(`${API_BASE_URL}/courses/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/courses/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -61,7 +70,12 @@ const courseService = {
    * @returns A promise resolving to the created Course object.
    */
   create: async (course: Omit<Course, 'id'>): Promise<Course> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/courses`, course);
+    const response = await axios.post(`${API_BASE_URL}/admin/courses`, course, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -73,7 +87,12 @@ const courseService = {
    * @returns A promise resolving to the updated Course object.
    */
   update: async (id: number, course: Partial<Course>): Promise<Course> => {
-    const response = await axios.put(`${API_BASE_URL}/courses/${id}`, course);
+    const response = await axios.put(`${API_BASE_URL}/courses/${id}`, course, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -84,7 +103,12 @@ const courseService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courses/${id}`);
+    await axios.delete(`${API_BASE_URL}/courses/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
   },
 
   // ---------------------
@@ -101,6 +125,10 @@ const courseService = {
   getAllCourseAssigns: async (page: number = 0, size: number = 100): Promise<CourseAssign[]> => {
     const response = await axios.get(`${API_BASE_URL}/courseassign`, {
       params: { page, size },
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
     });
     // Adjust if your backend returns a paginated response.
     return response.data.content || response.data;
@@ -113,7 +141,12 @@ const courseService = {
   * @returns A promise resolving to a CourseAssign object.
   */
   getCourseAssignById: async (id: number): Promise<CourseAssign> => {
-    const response = await axios.get(`${API_BASE_URL}/courseassign/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/courseassign/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -126,7 +159,12 @@ const courseService = {
   * @returns A promise resolving to the created CourseAssign object.
   */
   createCourseAssign: async (courseAssign: Omit<CourseAssign, 'id'>): Promise<CourseAssign> => {
-   const response = await axios.post(`${API_BASE_URL}/admin/courseassign`, courseAssign);
+   const response = await axios.post(`${API_BASE_URL}/admin/courseassign`, courseAssign, {
+     auth: {
+       username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+       password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+     }
+   });
    return response.data;
   },
 
@@ -138,7 +176,12 @@ const courseService = {
   * @returns A promise resolving to the updated CourseAssign object.
   */
   updateCourseAssign: async (id: number, courseAssign: Partial<CourseAssign>): Promise<CourseAssign> => {
-   const response = await axios.put(`${API_BASE_URL}/courseassign/${id}`, courseAssign);
+   const response = await axios.put(`${API_BASE_URL}/courseassign/${id}`, courseAssign, {
+     auth: {
+       username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+       password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+     }
+   });
    return response.data;
   },
 
@@ -149,7 +192,12 @@ const courseService = {
   * @returns A promise that resolves when deletion is complete.
   */
   deleteCourseAssign: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courseassign/${id}`);
+    await axios.delete(`${API_BASE_URL}/courseassign/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
   },
 };
 

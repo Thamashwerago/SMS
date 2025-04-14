@@ -13,7 +13,7 @@ public class TeacherDTO {
         private Long userId;
         private String name;
         private String phone;
-        private String dob;
+        private LocalDate dob;
         private String gender;
         private String address;
         private LocalDate joiningDate;
@@ -28,7 +28,7 @@ public class TeacherDTO {
     /**
      * Parameterized constructor for manually creating DTOs.
      */
-        public TeacherDTO(Long userId,String name, String phone, String dob, String gender, String address, LocalDate joiningDate, String status, String role) {
+        public TeacherDTO(Long userId,String name, String phone, LocalDate dob, String gender, String address, LocalDate joiningDate, String status, String role) {
             this.userId = userId;
             this.name = name;
             this.phone = phone;
@@ -123,11 +123,11 @@ public class TeacherDTO {
         this.gender = gender;
     }
 
-    public String getDob() {
+    public LocalDate getDob() {
         return dob;
     }
 
-    public void setDob(String dob) {
+    public void setDob(LocalDate dob) {
         this.dob = dob;
     }
 

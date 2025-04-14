@@ -29,7 +29,12 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAll: async (): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance`);
+    const response = await axios.get(`${API_BASE_URL}/attendance`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -43,7 +48,12 @@ const attendanceService = {
    * @returns A promise resolving to the created Attendance record.
    */
   markAttendance: async (attendance: Omit<Attendance, 'id'>): Promise<Attendance> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/attendance`, attendance);
+    const response = await axios.post(`${API_BASE_URL}/admin/attendance`, attendance, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -57,7 +67,12 @@ const attendanceService = {
    * @returns A promise resolving to the Attendance record.
    */
   getAttendanceById: async (id: number): Promise<Attendance> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/attendance/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -72,7 +87,12 @@ const attendanceService = {
    * @returns A promise resolving to the updated Attendance record.
    */
   updateAttendance: async (id: number, attendance: Partial<Attendance>): Promise<Attendance> => {
-    const response = await axios.put(`${API_BASE_URL}/attendance/${id}`, attendance);
+    const response = await axios.put(`${API_BASE_URL}/attendance/${id}`, attendance, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -86,7 +106,12 @@ const attendanceService = {
    * @returns A promise that resolves when the deletion is complete.
    */
   unMarkAttendance: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/attendance/${id}`);
+    await axios.delete(`${API_BASE_URL}/attendance/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
   },
 
   /**
@@ -103,6 +128,10 @@ const attendanceService = {
   getAttendanceByStudentAndDate: async (studentId: number, startDate: string, endDate: string): Promise<Attendance[]> => {
     const response = await axios.get(`${API_BASE_URL}/attendance/studentAndDate`, {
       params: { studentId, startDate, endDate },
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
     });
     return response.data;
   },
@@ -117,7 +146,12 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByStudent: async (userId: number): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/student/${userId}`);
+    const response = await axios.get(`${API_BASE_URL}/attendance/student/${userId}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -131,7 +165,12 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByCourse: async (courseId: number): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/course/${courseId}`);
+    const response = await axios.get(`${API_BASE_URL}/attendance/course/${courseId}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -146,7 +185,12 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByStudentAndCourse: async (studentId: number, courseId: number): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/student/${studentId}/course/${courseId}`);
+    const response = await axios.get(`${API_BASE_URL}/attendance/student/${studentId}/course/${courseId}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 };

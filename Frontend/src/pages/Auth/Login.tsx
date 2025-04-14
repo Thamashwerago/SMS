@@ -1,6 +1,9 @@
 // src/pages/Auth/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../../store/authSlice';
+import userService from '../../components/services/userService';
 
 // Dummy users list to simulate user lookup
 const dummyUsers = [
@@ -11,6 +14,7 @@ const dummyUsers = [
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -29,19 +33,26 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Simulate an API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // Call the userService to validate credentials
+      const userRole = await userService.isUser(email, password);
 
-    // Lookup the user from our dummy users list.
-    const foundUser = dummyUsers.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase() && user.password === password
-    );
+      if (!userRole) {
+        setError('Invalid email or password.');
+        setLoading(false);
+        return;
+      }
 
-    if (!foundUser) {
-      setError('Invalid email or password.');
-      setLoading(false);
-      return;
-    }
+      // Find the user in our dummy users list to get full user data
+      const foundUser = dummyUsers.find(
+        (user) => user.email.toLowerCase() === email.toLowerCase() && user.password === password
+      );
+
+      if (!foundUser) {
+        setError('Invalid email or password.');
+        setLoading(false);
+        return;
+      }
 
     // Dummy auth token
     const authToken = 'dummyAuthToken123';
@@ -53,11 +64,27 @@ const Login: React.FC = () => {
       sessionStorage.setItem('authToken', authToken);
     }
 
-    sessionStorage.setItem('user', JSON.stringify(foundUser));
+    sessionStorage.setItem('user', JSON.stringify({
+      email: foundUser.email,
+      password: foundUser.password,
+      role: foundUser.role,
+      name: foundUser.name
+    }));
 
-    // Redirect user based on their role
-    navigate(`/${foundUser.role}/dashboard`);
-    setLoading(false);
+    // Store user role separately for easy access
+    sessionStorage.setItem('userRole', foundUser.role);
+
+      // Update Redux store with credentials
+      dispatch(setCredentials({ token: authToken, role: foundUser.role }));
+
+      // Redirect user based on their role
+      navigate(`/${foundUser.role.toLowerCase()}/dashboard`);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An error occurred during login. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

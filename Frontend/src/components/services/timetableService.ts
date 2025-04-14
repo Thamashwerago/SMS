@@ -33,6 +33,10 @@ const timetableService = {
   getAll: async (page: number = 0, size: number = 100): Promise<TimetableEntry[]> => {
     const response = await axios.get(`${API_BASE_URL}/timetable`, {
       params: { page, size },
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
     });
     return response.data.content || response.data;
   },
@@ -44,7 +48,12 @@ const timetableService = {
    * @returns A promise resolving to the TimetableEntry.
    */
   getById: async (id: number): Promise<TimetableEntry> => {
-    const response = await axios.get(`${API_BASE_URL}/timetable/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/timetable/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -57,7 +66,12 @@ const timetableService = {
    * @returns A promise resolving to the newly created TimetableEntry.
    */
   create: async (entry: Omit<TimetableEntry, 'id'>): Promise<TimetableEntry> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/timetable`, entry);
+    const response = await axios.post(`${API_BASE_URL}/admin/timetable`, entry, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -69,7 +83,12 @@ const timetableService = {
    * @returns A promise resolving to the updated TimetableEntry.
    */
   update: async (id: number, entry: Partial<TimetableEntry>): Promise<TimetableEntry> => {
-    const response = await axios.put(`${API_BASE_URL}/timetable/${id}`, entry);
+    const response = await axios.put(`${API_BASE_URL}/timetable/${id}`, entry, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
     return response.data;
   },
 
@@ -80,7 +99,12 @@ const timetableService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/timetable/${id}`);
+    await axios.delete(`${API_BASE_URL}/timetable/${id}`, {
+      auth: {
+        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+      }
+    });
   },
 };
 

@@ -20,7 +20,7 @@ public class Teacher {
     private Long userId;
     private String name;
     private String phone;
-    private String dob;
+    private LocalDate dob;
     private String gender;
     private String address;
     private LocalDate joiningDate;
@@ -81,11 +81,11 @@ public class Teacher {
         this.phone = phone;
     }
 
-    public String getDob() {
+    public LocalDate getDob() {
         return dob;
     }
 
-    public void setDob(String dob) {
+    public void setDob(LocalDate dob) {
         this.dob = dob;
     }
 
