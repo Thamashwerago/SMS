@@ -38,7 +38,7 @@ public class Constants {
     /**
      * Base request mapping for student records.
      */
-    public static final String REQUEST_MAPPING_STUDENT = "/api/students";
+    public static final String REQUEST_MAPPING_STUDENT = "/api/student";
 
     /**
      * Name of the students table in the database.
@@ -64,7 +64,7 @@ public class Constants {
     /**
      * Base request mapping for course records.
      */
-    public static final String REQUEST_MAPPING_COURSE = "/api/courses";
+    public static final String REQUEST_MAPPING_COURSE = "/api/course";
 
     /**
      * Name of the course table in the database.
@@ -90,7 +90,7 @@ public class Constants {
     /**
      * Base request mapping for teacher records.
      */
-    public static final String REQUEST_MAPPING_TEACHER = "/api/teachers";
+    public static final String REQUEST_MAPPING_TEACHER = "/api/teacher";
 
     /**
      * Name of the teacher table in the database.
@@ -116,7 +116,7 @@ public class Constants {
     /**
      * Base request mapping for user  records.
      */
-    public static final String REQUEST_MAPPING_USER = "/api/users";
+    public static final String REQUEST_MAPPING_USER = "/api/user";
 
     /**
      * Name of the user table in the database.
