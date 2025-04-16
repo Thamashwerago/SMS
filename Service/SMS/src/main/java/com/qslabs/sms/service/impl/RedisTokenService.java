@@ -15,7 +15,7 @@ public class RedisTokenService {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    private static final long EXPIRATION = 30 * 60; // 30 minutes
+    private static final long EXPIRATION = 60 * 60; // 60 minutes
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void saveToken(String token,String username , Long userId,String role) {
