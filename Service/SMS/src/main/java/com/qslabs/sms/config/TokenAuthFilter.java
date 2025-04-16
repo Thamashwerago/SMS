@@ -33,7 +33,7 @@ public class TokenAuthFilter extends OncePerRequestFilter {
             AuthDTO tokenData = redisTokenService.getTokenData(token);
 
             if (tokenData != null && tokenData.getRole() != null) {
-                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(tokenData.getRole());
+                SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + tokenData.getRole());
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(tokenData.getUsername(), null, Collections.singletonList(authority));
                 SecurityContextHolder.getContext().setAuthentication(authentication);

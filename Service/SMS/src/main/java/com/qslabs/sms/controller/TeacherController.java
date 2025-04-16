@@ -73,11 +73,11 @@ public class TeacherController {
      * @param teacherDTO DTO object with teacher data
      * @return Created teacher object with status 201
      */
-        @Secured("ROLE_ADMIN")
-        @PostMapping
-        public ResponseEntity<TeacherDTO> createTeacher(@RequestBody @Valid TeacherDTO teacherDTO) {
-            return new ResponseEntity<>(teacherService.createTeacher(teacherDTO), HttpStatus.CREATED);
-        }
+    @Secured("ROLE_ADMIN")
+    @PostMapping
+    public ResponseEntity<TeacherDTO> createTeacher(@RequestBody @Valid TeacherDTO teacherDTO) {
+        return new ResponseEntity<>(teacherService.createTeacher(teacherDTO), HttpStatus.CREATED);
+    }
 
     /**
      * Updates an existing teacher.
