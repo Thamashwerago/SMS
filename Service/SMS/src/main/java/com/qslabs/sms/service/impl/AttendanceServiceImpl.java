@@ -51,7 +51,7 @@ public class AttendanceServiceImpl implements AttendanceService {
      * @return the attendance data as a DTO
      */
     @Override
-    //@Cacheable(value = "attendance", key = "#id")
+    @Cacheable(value = "attendance", key = "#id")
     public AttendanceDTO getAttendanceById(Long id) {
         Attendance attendance = attendanceRepository.findById(id).orElseThrow(AttendanceNotFoundException::new);
         return new AttendanceDTO(attendance);
@@ -65,7 +65,7 @@ public class AttendanceServiceImpl implements AttendanceService {
      * @return the updated attendance as a DTO
      */
     @Override
-    //@CachePut(value = "attendance", key = "#id")
+    @CachePut(value = "attendance", key = "#id")
     public AttendanceDTO updateAttendance(Long id, AttendanceDTO attendanceDTO) {
         Attendance attendance = attendanceRepository.findById(id).orElseThrow(() -> new AttendanceNotFoundException(" with id: " + id));
 
@@ -84,7 +84,7 @@ public class AttendanceServiceImpl implements AttendanceService {
      * @param id the ID of the attendance record to delete
      */
     @Override
-    //@CacheEvict(value = "attendance", key = "#id")
+    @CacheEvict(value = "attendance", key = "#id")
     public void unMarkAttendance(Long id) {
         attendanceRepository.deleteById(id);
     }
@@ -112,7 +112,7 @@ public class AttendanceServiceImpl implements AttendanceService {
      * @return list of attendance records as DTOs
      */
     @Override
-    //@Cacheable(value = "attendanceByStudent", key = "#userId")
+    @Cacheable(value = "attendanceByStudent", key = "#userId")
     public List<AttendanceDTO> getAttendanceByStudent(Long userId) {
         List<Attendance> attendanceList = attendanceRepository.findByUserId(userId);
         return attendanceList.stream().map(AttendanceDTO::new).collect(Collectors.toList());
@@ -125,7 +125,7 @@ public class AttendanceServiceImpl implements AttendanceService {
      * @return list of attendance records as DTOs
      */
     @Override
-    //@Cacheable(value = "attendanceByCourse", key = "#courseId")
+    @Cacheable(value = "attendanceByCourse", key = "#courseId")
     public List<AttendanceDTO> getAttendanceByCourse(Long courseId) {
         List<Attendance> attendanceList = attendanceRepository.findByCourseId(courseId);
         return attendanceList.stream().map(AttendanceDTO::new).collect(Collectors.toList());
@@ -139,7 +139,7 @@ public class AttendanceServiceImpl implements AttendanceService {
      * @return list of attendance records as DTOs
      */
     @Override
-    //@Cacheable(value = "attendanceByStudentCourse", key = "#studentId + '_' + #courseId")
+    @Cacheable(value = "attendanceByStudentCourse", key = "#studentId + '_' + #courseId")
     public List<AttendanceDTO> getAttendanceByStudentAndCourse(Long studentId, Long courseId) {
         List<Attendance> attendanceList = attendanceRepository.findByUserIdAndCourseId(studentId, courseId);
         return attendanceList.stream().map(AttendanceDTO::new).collect(Collectors.toList());

@@ -43,7 +43,7 @@ public class TimeTableServiceImpl implements TimeTableService {
      * @throws TimetableNotFoundException if no record is found
      */
     @Override
-    //@Cacheable(value = "timetable", key = "#id")
+    @Cacheable(value = "timetable", key = "#id")
     public TimeTableDTO getTimeTableById(Long id) {
         TimeTable timeTable = repository.findById(id).orElseThrow(TimetableNotFoundException::new);
         return new TimeTableDTO(timeTable);
@@ -56,7 +56,7 @@ public class TimeTableServiceImpl implements TimeTableService {
      * @return created timetable as DTO
      */
     @Override
-    //@CachePut(value = "timetable", key = "#result.id")
+    @CachePut(value = "timetable", key = "#result.id")
     public TimeTableDTO createTimeTable(TimeTableDTO timeTableDTO) {
         TimeTable timeTable = new TimeTable(timeTableDTO);
         timeTable = repository.save(timeTable);
@@ -72,7 +72,7 @@ public class TimeTableServiceImpl implements TimeTableService {
      * @throws TimetableNotFoundException if no record is found with the given ID
      */
     @Override
-    //@CachePut(value = "timetable", key = "#id")
+    @CachePut(value = "timetable", key = "#id")
     public TimeTableDTO updateTimeTable(Long id, TimeTableDTO timeTableDTO) {
         TimeTable timeTable = repository.findById(id).orElseThrow(() -> new TimetableNotFoundException(" with id: " + id));
 
@@ -94,7 +94,7 @@ public class TimeTableServiceImpl implements TimeTableService {
      * @throws TimetableNotFoundException if the record doesn't exist
      */
     @Override
-    //@CacheEvict(value = "timetable", key = "#id")
+    @CacheEvict(value = "timetable", key = "#id")
     public boolean deleteTimeTable(Long id) {
         TimeTable timeTable = repository.findById(id).orElseThrow(() -> new TimetableNotFoundException(" with id: " + id));
         repository.delete(timeTable);

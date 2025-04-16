@@ -43,7 +43,7 @@ public class CourseServiceImpl implements CourseService {
      * @throws CourseAssignException if course is not found
      */
     @Override
-    //@Cacheable(value = "course", key = "#id")
+    @Cacheable(value = "course", key = "#id")
     public CourseDTO getCourseById(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new CourseAssignException(" with id " + id));
@@ -57,7 +57,7 @@ public class CourseServiceImpl implements CourseService {
      * @return created CourseDTO
      */
     @Override
-    //@CachePut(value = "course", key = "#result.id")
+    @CachePut(value = "course", key = "#result.id")
     public CourseDTO createCourse(CourseDTO courseDTO) {
         Course course = new Course(courseDTO);
         course = courseRepository.save(course);
@@ -73,7 +73,7 @@ public class CourseServiceImpl implements CourseService {
      * @throws CourseAssignException if course is not found
      */
     @Override
-    //@CachePut(value = "course", key = "#id")
+    @CachePut(value = "course", key = "#id")
     public CourseDTO updateCourse(Long id, CourseDTO courseDTO) {
         Course course = courseRepository.findById(id).orElseThrow(() -> new CourseAssignException(" with id " + id));
 
@@ -94,7 +94,7 @@ public class CourseServiceImpl implements CourseService {
      * @throws CourseAssignException if course does not exist
      */
     @Override
-    //@CacheEvict(value = "course", key = "#id")
+    @CacheEvict(value = "course", key = "#id")
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new CourseAssignException(" with id " + id);

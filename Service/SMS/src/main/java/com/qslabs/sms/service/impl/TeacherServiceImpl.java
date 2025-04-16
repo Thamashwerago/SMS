@@ -45,7 +45,7 @@ public class TeacherServiceImpl implements TeacherService {
      * @throws TeacherNotFoundException if no teacher is found
      */
     @Override
-    //@Cacheable(value = "teacher", key = "#id")
+    @Cacheable(value = "teacherByUser", key = "#id")
     public TeacherDTO getTeacherByUserId(Long id) {
         Teacher teacher = teacherRepository.findByUserId(id)
                 .orElseThrow(TeacherNotFoundException::new);
@@ -60,7 +60,7 @@ public class TeacherServiceImpl implements TeacherService {
      * @throws TeacherNotFoundException if no teacher is found
      */
     @Override
-    //@Cacheable(value = "teacherByUser", key = "#id")
+    @Cacheable(value = "teacher", key = "#id")
     public TeacherDTO getTeacherById(Long id) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(TeacherNotFoundException::new);
@@ -74,7 +74,7 @@ public class TeacherServiceImpl implements TeacherService {
      * @return created TeacherDTO
      */
     @Override
-    //@CachePut(value = "teacher", key = "#result.id")
+    @CachePut(value = "teacher", key = "#result.id")
     public TeacherDTO createTeacher(TeacherDTO teacherDTO) {
         Teacher teacher = new Teacher(teacherDTO);
         teacher = teacherRepository.save(teacher);
@@ -89,7 +89,7 @@ public class TeacherServiceImpl implements TeacherService {
      * @return updated TeacherDTO
      */
     @Override
-    //@CachePut(value = "teacher", key = "#id")
+    @CachePut(value = "teacher", key = "#id")
     public TeacherDTO updateTeacher(Long id, TeacherDTO teacherDTO) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new TeacherNotFoundException(" with id: " + id));
@@ -115,7 +115,7 @@ public class TeacherServiceImpl implements TeacherService {
      * @throws TeacherNotFoundException if teacher is not found
      */
     @Override
-    //@CacheEvict(value = "teacher", key = "#id")
+    @CacheEvict(value = "teacher", key = "#id")
     public void deleteTeacher(Long id) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new TeacherNotFoundException(" with id: " + id));

@@ -76,7 +76,7 @@ public class StudentServiceImpl implements StudentService {
      * @return corresponding StudentDTO or null if not found
      */
     @Override
-    //@Cacheable(value = "students", key = "#id")
+    @Cacheable(value = "students", key = "#id")
     public StudentDTO getStudentById(Long id) {
         Optional<Student> student = studentRepository.findById(id);
         return student.map(this::convertToDTO).orElse(null);
@@ -89,7 +89,7 @@ public class StudentServiceImpl implements StudentService {
      * @return the created StudentDTO
      */
     @Override
-    //@CachePut(value = "students", key = "#result.id")
+    @CachePut(value = "students", key = "#result.id")
     public StudentDTO addStudent(Student student) {
         Student savedStudent = studentRepository.save(student);
         return convertToDTO(savedStudent);
@@ -103,7 +103,7 @@ public class StudentServiceImpl implements StudentService {
      * @return updated StudentDTO or null if student not found
      */
     @Override
-    //@CachePut(value = "students", key = "#id")
+    @CachePut(value = "students", key = "#id")
     public StudentDTO updateStudent(Long id, Student updatedStudent) {
         if (studentRepository.existsById(id)) {
             updatedStudent.setId(id);
@@ -120,7 +120,7 @@ public class StudentServiceImpl implements StudentService {
      * @return true if deleted, false if not found
      */
     @Override
-    //@CacheEvict(value = "students", key = "#id")
+    @CacheEvict(value = "students", key = "#id")
     public boolean deleteStudent(Long id) {
         if (studentRepository.existsById(id)) {
             studentRepository.deleteById(id);
