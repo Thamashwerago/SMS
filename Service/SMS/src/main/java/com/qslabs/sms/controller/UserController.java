@@ -38,7 +38,7 @@ public class UserController {
      * @return Success message or token
      */
     @PostMapping("/login")
-    public ResponseEntity<String> getUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.isUser(userDTO.getUsername(), userDTO.getPassword()));
     }
 

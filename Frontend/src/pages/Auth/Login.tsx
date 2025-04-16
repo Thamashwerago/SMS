@@ -1,25 +1,49 @@
 // src/pages/Auth/Login.tsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from '../../store/authSlice';
-import userService from '../../components/services/userService';
-
-// Dummy users list to simulate user lookup
-const dummyUsers = [
-  { email: 'admin@example.com', password: 'admin123', role: 'ADMIN', name: 'Admin User' },
-  { email: 'teacher@example.com', password: 'teacher123', role: 'teacher', name: 'Teacher User' },
-  { email: 'student@example.com', password: 'student123', role: 'student', name: 'Student User' },
-];
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/authSlice";
+import userService from "../../components/services/userService";
+import {
+  ADMIN_DASHBOARD_PATH,
+  STUDENT_DASHBOARD_PATH,
+  TEACHER_DASHBOARD_PATH,
+} from "../../constants/RouteStrings";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
+
+  // Define valid roles and their corresponding dashboard paths
+  const roleToPath: Record<string, string> = {
+    admin: ADMIN_DASHBOARD_PATH,
+    student: STUDENT_DASHBOARD_PATH,
+    teacher: TEACHER_DASHBOARD_PATH,
+  };
+
+  const handleNavigation = (role: string) => {
+    if (!role) return;
+    const normalizedRole = role.toLowerCase().trim();
+    if (!roleToPath[normalizedRole]) {
+      throw new Error(`Invalid role: ${normalizedRole}`);
+    }
+    navigate(roleToPath[normalizedRole]);
+  };
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      const { role } = JSON.parse(user);
+      setUserRole(role);
+      handleNavigation(role);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,61 +51,44 @@ const Login: React.FC = () => {
     setLoading(true);
 
     // Basic validation
-    if (!email || !password) {
-      setError('Please provide both email and password.');
+    if (!username || !password) {
+      setError("Please provide both username and password.");
       setLoading(false);
       return;
     }
 
     try {
-      // Call the userService to validate credentials
-      const userRole = await userService.isUser(email, password);
+      const role = await userService.isUser(username, password);
 
-      if (!userRole) {
-        setError('Invalid email or password.');
+      if (!role) {
+        setError("Invalid username or password.");
         setLoading(false);
         return;
       }
 
-      // Find the user in our dummy users list to get full user data
-      const foundUser = dummyUsers.find(
-        (user) => user.email.toLowerCase() === email.toLowerCase() && user.password === password
+      // Store user data in session storage
+      sessionStorage.setItem(
+        "user",
+        JSON.stringify({
+          username: username,
+          password: password,
+          role: role,
+        })
       );
 
-      if (!foundUser) {
-        setError('Invalid email or password.');
-        setLoading(false);
-        return;
-      }
+      setUserRole(role);
 
-    // Dummy auth token
-    const authToken = 'dummyAuthToken123';
-
-    // Store token in localStorage if "Remember Me" is checked; otherwise, in sessionStorage.
-    if (rememberMe) {
-      localStorage.setItem('authToken', authToken);
-    } else {
-      sessionStorage.setItem('authToken', authToken);
-    }
-
-    sessionStorage.setItem('user', JSON.stringify({
-      email: foundUser.email,
-      password: foundUser.password,
-      role: foundUser.role,
-      name: foundUser.name
-    }));
-
-    // Store user role separately for easy access
-    sessionStorage.setItem('userRole', foundUser.role);
+      // Store auth token
+      const authToken = "dummyAuthToken123";
 
       // Update Redux store with credentials
-      dispatch(setCredentials({ token: authToken, role: foundUser.role }));
+      dispatch(setCredentials({ token: authToken, role: role }));
 
-      // Redirect user based on their role
-      navigate(`/${foundUser.role.toLowerCase()}/dashboard`);
+      // Redirect user based on their role using the correct path
+      handleNavigation(role);
     } catch (err) {
-      console.error('Login error:', err);
-      setError('An error occurred during login. Please try again.');
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -96,20 +103,26 @@ const Login: React.FC = () => {
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-white font-semibold mb-1">
-              Email
+            <label
+              htmlFor="username"
+              className="block text-white font-semibold mb-1"
+            >
+              Username
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded focus:outline-none text-white"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-white font-semibold mb-1">
+            <label
+              htmlFor="password"
+              className="block text-white font-semibold mb-1"
+            >
               Password
             </label>
             <input
@@ -138,7 +151,7 @@ const Login: React.FC = () => {
             disabled={loading}
             className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white font-bold transition duration-300"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

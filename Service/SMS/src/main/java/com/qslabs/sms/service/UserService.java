@@ -1,5 +1,6 @@
 package com.qslabs.sms.service;
 
+import com.qslabs.sms.dto.AuthDTO;
 import com.qslabs.sms.dto.UserDTO;
 import com.qslabs.sms.model.User;
 
@@ -24,7 +25,7 @@ public interface UserService {
      * @param password the raw password to validate
      * @return role of the user if valid, otherwise "null" string
      */
-    String isUser(String username, String password);
+    AuthDTO isUser(String username, String password);
 
     /**
      * Updates the username of a user by ID.

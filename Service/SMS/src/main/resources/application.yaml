@@ -9,7 +9,12 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  data:
+    redis:
+      timeout: 60000
+      host: 172.236.144.75
+      port: 6379

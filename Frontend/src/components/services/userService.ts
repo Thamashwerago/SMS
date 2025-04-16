@@ -1,7 +1,7 @@
 // src/services/userService.ts
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? '172.236.144.75:8081/api';
+const API_BASE_URL = 'http://172.236.144.75:8080/api/user';
 
 /**
  * User interface matching the backend User model.
@@ -96,7 +96,7 @@ const userService = {
    *          otherwise, returns "null" (as a string).
    */
   isUser: async (username: string, password: string): Promise<string> => {
-    const response = await axios.post(`${API_BASE_URL}/login`, { username, password });
+    const response = await axios.post(`${API_BASE_URL}/login`, { "username": username, "password": password });
     return response.data;
   },
 };

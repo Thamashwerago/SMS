@@ -6,6 +6,9 @@ import com.qslabs.sms.model.CourseAssign;
 import com.qslabs.sms.repository.CourseAssignRepository;
 import com.qslabs.sms.service.CourseAssignService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,7 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      * @throws CourseAssignException if assignment not found
      */
     @Override
+    //@Cacheable(value = "courseAssign", key = "#id")
     public CourseAssignDTO getCourseAssign(Long id){
         CourseAssign courseAssign = courseAssignRepository.findById(id)
                 .orElseThrow(() -> new CourseAssignException(" with id " + id));
@@ -52,6 +56,7 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      * @return the newly created CourseAssignDTO
      */
     @Override
+    //@CachePut(value = "courseAssign", key = "#result.id")
     public CourseAssignDTO createCourseAssign(CourseAssignDTO courseAssignDTO){
         CourseAssign courseAssign = new CourseAssign(courseAssignDTO);
         courseAssign = courseAssignRepository.save(courseAssign);
@@ -67,6 +72,7 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      * @throws CourseAssignException if assignment not found
      */
     @Override
+    //@CachePut(value = "courseAssign", key = "#id")
     public CourseAssignDTO updateCourseAssign(Long id, CourseAssignDTO courseAssignDTO){
         CourseAssign courseAssign = courseAssignRepository.findById(id).orElseThrow(() -> new CourseAssignException(" with id " + id));
 
@@ -85,6 +91,7 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      * @throws CourseAssignException if assignment does not exist
      */
     @Override
+    //@CacheEvict(value = "courseAssign", key = "#id")
     public void deleteCourseAssign(Long id){
         if (!courseAssignRepository.existsById(id)) {
             throw new CourseAssignException(" with id " + id);

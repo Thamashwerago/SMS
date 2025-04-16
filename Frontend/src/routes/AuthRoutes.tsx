@@ -24,10 +24,10 @@ const AuthRoutes: React.FC = () => {
     <Suspense fallback={<div className="text-center text-white mt-8">{AUTH_LOADING_MESSAGE}</div>}>
       <Routes>
         {/* Authentication Page: Login */}
-        <Route path={AUTH_LOGIN_PATH} element={<Login />} />
+        <Route path="/" element={<Login />} />
         
         {/* Fallback: Redirect all unknown auth routes to login */}
-        <Route path="*" element={<Navigate to={AUTH_FALLBACK_ROUTE} replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );

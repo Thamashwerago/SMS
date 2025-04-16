@@ -1,13 +1,23 @@
 package com.qslabs.sms.service.impl;
 
+import com.qslabs.sms.dto.AuthDTO;
 import com.qslabs.sms.dto.UserDTO;
 import com.qslabs.sms.model.User;
 import com.qslabs.sms.repository.UserRepository;
 import com.qslabs.sms.service.UserService;
+import com.qslabs.sms.service.impl.RedisTokenService;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 /**
  * Implementation of the UserService interface.
@@ -21,6 +31,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private RedisTokenService redisTokenService;
 
     /**
      * Creates a new user and saves it to the database with an encoded password.
@@ -37,90 +53,76 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Validates user login credentials.
+     * Validates user login credentials and generates a session token.
      *
      * @param username the user's username
      * @param password the user's raw password
-     * @return user's role if valid; "null" (as string) if invalid
+     * @return AuthDTO with token and user info if authenticated, otherwise null fields
      */
     @Override
-    public String isUser(String username, String password) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
-        if(passwordEncoder.matches(password, user.getPassword())){
-            return String.valueOf(user.getRole());
-        }else {
-            return String.valueOf("null");
+    public AuthDTO isUser(String username, String password) {
+        try {
+            // Authenticate using raw credentials
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+
+            // Set security context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Load user from DB to generate token
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+            // Generate token and store in Redis
+            String token = UUID.randomUUID().toString();
+            redisTokenService.saveToken(token, user.getUsername(), user.getId(), user.getRole());
+
+            return new AuthDTO(token, user.getUsername(), user.getId(), user.getRole());
+
+        }finally {
+
         }
     }
 
-    /**
-     * Updates the username of a user by their ID.
-     *
-     * @param id      the user ID
-     * @param userDTO DTO containing the new username
-     * @return updated UserDTO
-     */
     @Override
-    public UserDTO updateUserName(Long id, UserDTO userDTO){
-        User user = userRepository.findById(id).orElseThrow(()->new UsernameNotFoundException("User not found"));
+    public UserDTO updateUserName(Long id, UserDTO userDTO) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setUsername(userDTO.getUsername());
         user = userRepository.save(user);
         return new UserDTO(user);
     }
 
-    /**
-     * Updates the email of a user.
-     *
-     * @param id      the user ID
-     * @param userDTO DTO containing the new email
-     * @return updated UserDTO
-     */
     @Override
-    public UserDTO updateEmail(Long id, UserDTO userDTO){
-        User user = userRepository.findById(id).orElseThrow(()->new UsernameNotFoundException("User not found"));
+    public UserDTO updateEmail(Long id, UserDTO userDTO) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setEmail(userDTO.getEmail());
         user = userRepository.save(user);
         return new UserDTO(user);
     }
 
-    /**
-     * Updates the password for a user, with encoding.
-     *
-     * @param id      the user ID
-     * @param userDTO DTO containing the new (raw) password
-     * @return updated UserDTO
-     */
     @Override
-    public UserDTO updateUserPassword(Long id, UserDTO userDTO){
-        User user = userRepository.findById(id).orElseThrow(()->new UsernameNotFoundException("User not found"));
+    public UserDTO updateUserPassword(Long id, UserDTO userDTO) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user = userRepository.save(user);
         return new UserDTO(user);
     }
 
-    /**
-     * Updates the role assigned to a user.
-     *
-     * @param id      the user ID
-     * @param userDTO DTO containing the new role
-     * @return updated UserDTO
-     */
     @Override
-    public UserDTO updateUserRole(Long id, UserDTO userDTO){
-        User user = userRepository.findById(id).orElseThrow(()->new UsernameNotFoundException("User not found"));
+    public UserDTO updateUserRole(Long id, UserDTO userDTO) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setRole(userDTO.getRole());
         user = userRepository.save(user);
         return new UserDTO(user);
     }
 
-    /**
-     * Deletes a user from the database.
-     *
-     * @param id the user ID to delete
-     */
     @Override
-    public void deleteUser(Long id){
+    public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
-
 }
