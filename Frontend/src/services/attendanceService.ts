@@ -1,7 +1,8 @@
 // src/services/attendanceService.ts
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL ?? '172.236.144.75:8081/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
 
 /**
  * Attendance interface representing the backend Attendance model.

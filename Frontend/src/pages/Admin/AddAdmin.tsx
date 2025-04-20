@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
-import userService from "../../components/services/userService";
+import userService from "../../services/userService";
 import { validateAdminForm, AdminFormData } from "../../utils/validation";
 import {
   ADMIN_PAGE_TITLE,

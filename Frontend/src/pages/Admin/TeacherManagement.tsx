@@ -4,7 +4,7 @@ import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
 import CommonButton from "../../components/common/Button";
-import teacherService from "../../components/services/teacherService";
+import teacherService from "../../services/teacherService";
 import {
   TEACHER_MANAGEMENT_HEADING,
   TEACHER_SEARCH_PLACEHOLDER,

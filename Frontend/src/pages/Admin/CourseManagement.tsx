@@ -4,7 +4,7 @@ import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
 import CommonButton from "../../components/common/Button";
-import courseService, { Course } from "../../components/services/courseService";
+import courseService, { Course } from "../../services/courseService";
 import {
   COURSE_MANAGEMENT_HEADING,
   COURSE_SEARCH_PLACEHOLDER,

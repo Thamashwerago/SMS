@@ -1,202 +1,348 @@
 // src/pages/Teacher/Attendance.tsx
-import React, { useState, useMemo, useEffect } from 'react';
-import Sidebar from '../../components/common/Sidebar';
-import Navbar from '../../components/common/Navbar';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 
-// Dummy data: Teacher's courses.
-const teacherCourses = [
-  { id: 'course1', name: 'Calculus' },
-  { id: 'course2', name: 'Physics' },
-];
+// UI Components
+import Sidebar from "../../components/common/Sidebar";
+import Navbar from "../../components/common/Navbar";
+import Card from "../../components/common/Card";
+import CommonTable, { Column } from "../../components/common/Table";
+import Button from "../../components/common/Button";
 
-// Dummy data: Students per course.
-const studentsByCourse: Record<string, Array<{ id: string; name: string; email: string }>> = {
-  course1: [
-    { id: 's1', name: 'Alice', email: 'alice@example.com' },
-    { id: 's2', name: 'Bob', email: 'bob@example.com' },
-    { id: 's3', name: 'Charlie', email: 'charlie@example.com' },
-  ],
-  course2: [
-    { id: 's4', name: 'David', email: 'david@example.com' },
-    { id: 's5', name: 'Eve', email: 'eve@example.com' },
-  ],
-};
+// Services
+import courseService, { Course } from "../../services/courseService";
+import studentService, { Student } from "../../services/studentService";
+import attendanceService from "../../services/attendanceService";
 
-interface AttendanceRecord {
-  courseId: string;
+// Strings
+import { TEACHER_ATTENDANCE_STRINGS as S } from "../../constants/teacher/attendanceConsts";
+
+/**
+ * AttendanceRecordRow
+ * -------------------
+ * Simplified record for display.
+ */
+interface AttendanceRecordRow {
+  id: string | number;
+  courseName: string;
   date: string;
-  present: string[]; // Array of student IDs
+  presentNames: string;
 }
 
-const Attendance: React.FC = () => {
-  // Selected course for input; default to first course.
-  const [selectedCourse, setSelectedCourse] = useState<string>(teacherCourses[0].id);
-  // Attendance input for the current session.
-  const [attendanceInput, setAttendanceInput] = useState<Record<string, boolean>>({});
-  // Array of attendance records (each record corresponds to one session input).
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+const AttendancePage: React.FC = () => {
+  // Loading & error state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // When selectedCourse changes, initialize the attendance input based on that course's students.
+  // Data state
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [attendanceInput, setAttendanceInput] = useState<
+    Record<number, boolean>
+  >({});
+  const [records, setRecords] = useState<AttendanceRecordRow[]>([]);
+
+  /**
+   * fetchData
+   * ---------
+   * 1. Gets teacher's courses
+   * 2. Default-selects first course and loads its students & records
+   */
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    // 1. Get teacher ID
+    const teacherId = sessionStorage.getItem("userId");
+    if (!teacherId) {
+      setError(S.ERROR_NO_USER_ID);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Fetch course assignments
+    try {
+      const assigns = await courseService.getAllCourseAssigns();
+      // Filter assignments where role = 'Teacher'
+      const myCourses = assigns.filter(
+        (a) => a.userId === Number(teacherId) && a.role === "Teacher"
+      );
+      const courseDetails: Course[] = [];
+      for (const a of myCourses) {
+        try {
+          const c = await courseService.getById(a.courseId);
+          courseDetails.push(c);
+        } catch {
+          // Skip if course fetch fails
+        }
+      }
+      setCourses(courseDetails);
+      if (courseDetails.length > 0) {
+        setSelectedCourseId(courseDetails[0].id);
+      }
+    } catch (e) {
+      console.error("Assignments fetch error", e);
+      setError(S.ERROR_FETCH_ASSIGNMENTS);
+    }
+
+    setLoading(false);
+  }, []);
+
+  // Load courses on mount
   useEffect(() => {
-    const students = studentsByCourse[selectedCourse] || [];
-    // Set default to false (absent) for all students.
-    const initialInput: Record<string, boolean> = {};
-    students.forEach((student) => {
-      initialInput[student.id] = false;
-    });
-    setAttendanceInput(initialInput);
-  }, [selectedCourse]);
+    fetchData();
+  }, [fetchData]);
 
-  // Handle course selection change.
-  const handleCourseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCourse(e.target.value);
+  /**
+   * loadCourseDetails
+   * -----------------
+   * Fetches students and existing attendance for the selected course.
+   */
+  const loadCourseDetails = useCallback(async () => {
+    if (selectedCourseId == null) return;
+    setLoading(true);
+    setError(null);
+
+    // 1. Fetch students assigned to this course
+    try {
+      const assigns = await courseService.getAllCourseAssigns();
+      const studentAssigns = assigns.filter(
+        (a) => a.courseId === selectedCourseId && a.role === "Student"
+      );
+      const studDetails: Student[] = [];
+      for (const a of studentAssigns) {
+        try {
+          const s = await studentService.getById(a.userId);
+          studDetails.push(s);
+        } catch {
+          // skip
+        }
+      }
+      setStudents(studDetails);
+      // Initialize input map
+      const initInput: Record<number, boolean> = {};
+      studDetails.forEach((s) => (initInput[s.userId] = false));
+      setAttendanceInput(initInput);
+    } catch (e) {
+      console.error("Students fetch error", e);
+      setError(S.ERROR_FETCH_STUDENTS);
+    }
+    // 2. Fetch existing attendance records
+    try {
+      const atts =
+        await attendanceService.getAttendanceByCourse(selectedCourseId);
+      const rows: AttendanceRecordRow[] = atts.map((r, index) => ({
+        id: `${r.courseId}-${r.date}-${index}`,
+        courseName:
+          courses.find((c) => c.id === r.courseId)?.name ?? S.COL_COURSE,
+        date: r.date,
+        presentNames:
+          r.status.toLowerCase() === "present" ? r.userId.toString() : "",
+      }));
+      setRecords(rows);
+      setRecords(rows);
+    } catch (e) {
+      console.error("Records fetch error", e);
+      setError(S.ERROR_FETCH_RECORDS);
+    }
+
+    setLoading(false);
+  }, [selectedCourseId, courses]);
+
+  // Load students & records when selectedCourseId changes
+  useEffect(() => {
+    loadCourseDetails();
+  }, [loadCourseDetails]);
+
+  /**
+   * handleCheckboxChange
+   * ---------------------
+   */
+  const handleCheckboxChange = (userId: number) => {
+    setAttendanceInput((prev) => ({ ...prev, [userId]: !prev[userId] }));
   };
 
-  // Toggle attendance checkbox for a student.
-  const handleCheckboxChange = (studentId: string) => {
-    setAttendanceInput((prev) => ({
-      ...prev,
-      [studentId]: !prev[studentId],
-    }));
-  };
-
-  // Submit current session attendance.
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  /**
+   * handleSubmit
+   * ------------
+   * Marks attendance for each student.
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const presentStudents = Object.entries(attendanceInput)
-      .filter(([, isPresent]) => isPresent)
-      .map(([studentId]) => studentId);
-    const newRecord: AttendanceRecord = {
-      courseId: selectedCourse,
-      date: new Date().toLocaleString(),
-      present: presentStudents,
-    };
-    setAttendanceRecords((prev) => [...prev, newRecord]);
-    alert('Attendance recorded successfully!');
+    if (selectedCourseId == null) return;
+    setLoading(true);
+    setError(null);
+
+    const date = new Date().toISOString().slice(0, 10);
+    try {
+      for (const [uid, present] of Object.entries(attendanceInput)) {
+        const status = present ? "Present" : "Absent";
+        await attendanceService.markAttendance({
+          userId: Number(uid),
+          role: "Student",
+          courseId: selectedCourseId,
+          date,
+          status,
+        });
+      }
+      // Refresh records
+      await loadCourseDetails();
+    } catch (e) {
+      console.error("Mark attendance error", e);
+      setError(S.ERROR_MARK_ATTENDANCE);
+    }
+    setLoading(false);
   };
 
-  // Compute overall attendance statistics across all sessions.
+  /**
+   * Overall stats memo
+   */
   const overallStats = useMemo(() => {
-    let totalExpected = 0;
-    let totalAttended = 0;
-    attendanceRecords.forEach((record) => {
-      const students = studentsByCourse[record.courseId] || [];
-      totalExpected += students.length;
-      totalAttended += record.present.length;
-    });
-    const overallPercentage = totalExpected > 0 ? ((totalAttended / totalExpected) * 100).toFixed(1) : '0';
-    return { totalSessions: attendanceRecords.length, totalExpected, totalAttended, overallPercentage };
-  }, [attendanceRecords]);
+    const totalSessions = records.length;
+    const totalExpected = students.length * totalSessions;
+    const totalAttended = records.filter((r) => r.presentNames).length;
+    const overallPercent =
+      totalExpected > 0
+        ? ((totalAttended / totalExpected) * 100).toFixed(1)
+        : "0";
+    return { totalSessions, totalExpected, totalAttended, overallPercent };
+  }, [records, students]);
+
+  // Columns for records table
+  const recordCols: Column<AttendanceRecordRow>[] = useMemo(
+    () => [
+      { header: S.COL_DATE, accessor: "date" },
+      { header: S.COL_PRESENT, accessor: "presentNames" },
+    ],
+    []
+  );
 
   return (
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
-      {/* Sidebar */}
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        {/* Navbar */}
         <Navbar />
         <main className="p-8 space-y-12">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-            Record Attendance
-          </h1>
+          {/* Heading & Refresh */}
+          <div className="flex justify-between items-center">
+            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+              {S.PAGE_HEADING}
+            </h1>
+            <Button
+              label={S.BTN_REFRESH}
+              onClick={loadCourseDetails}
+              isLoading={loading}
+              variant="primary"
+            />
+          </div>
+
+          {/* Error */}
+          {error && <p className="text-red-500">{error}</p>}
+
           {/* Attendance Input Form */}
-          <section className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8">
+          <Card
+            title={courses.find((c) => c.id === selectedCourseId)?.name ?? ""}
+            value=""
+            icon="📋"
+          >
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Course Select */}
               <div>
-                <label htmlFor="course" className="block text-white text-lg font-semibold mb-2">
-                  Select Course
+                <label
+                  htmlFor="course-select"
+                  className="block text-white mb-2"
+                >
+                  {S.LABEL_SELECT_COURSE}
                 </label>
                 <select
-                  id="course"
-                  value={selectedCourse}
-                  onChange={handleCourseChange}
-                  className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
+                  id="course-select"
+                  value={selectedCourseId ?? ""}
+                  onChange={(e) => setSelectedCourseId(Number(e.target.value))}
+                  className="w-full px-4 py-2 bg-gray-800 text-white rounded"
                 >
-                  {teacherCourses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.name}
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {/* Student Checkboxes */}
               <div>
-                <p className="block text-white text-lg font-semibold mb-2">Mark Present</p>
+                <p className="block text-white mb-2">{S.LABEL_MARK_PRESENT}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {(studentsByCourse[selectedCourse] || []).map((student) => (
-                    <label key={student.id} className="flex items-center space-x-2 text-white">
+                  {students.map((s) => (
+                    <label
+                      key={s.userId}
+                      className="flex items-center space-x-2 text-white"
+                    >
                       <input
                         type="checkbox"
-                        checked={attendanceInput[student.id] || false}
-                        onChange={() => handleCheckboxChange(student.id)}
+                        checked={attendanceInput[s.userId] || false}
+                        onChange={() => handleCheckboxChange(s.userId)}
                         className="h-4 w-4"
                       />
-                      <span>{student.name}</span>
+                      <span>
+                        {s.firstName} {s.lastName}
+                      </span>
                     </label>
                   ))}
                 </div>
               </div>
+
+              {/* Submit Button */}
               <div>
-                <button
+                <Button
                   type="submit"
-                  className="w-full px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white font-bold transition duration-300"
-                >
-                  Submit Attendance
-                </button>
+                  label={S.BTN_SUBMIT}
+                  isLoading={loading}
+                  variant="primary"
+                  className="w-full"
+                />
               </div>
             </form>
-          </section>
+          </Card>
 
-          {/* Overall Attendance Summary */}
-          <section className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-white mb-4">Overall Attendance Summary</h2>
-            <div className="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0">
-              <div className="text-center">
-                <p className="text-xl text-gray-300">Total Sessions</p>
-                <p className="text-3xl font-bold text-white">{overallStats.totalSessions}</p>
+          {/* Summary Section */}
+          <Card title={S.SECTION_SUMMARY} value="" icon="📊">
+            <div className="flex justify-around text-center">
+              <div>
+                <p className="text-gray-300">{S.LABEL_TOTAL_SESSIONS}</p>
+                <p className="text-white text-2xl font-bold">
+                  {overallStats.totalSessions}
+                </p>
               </div>
-              <div className="text-center">
-                <p className="text-xl text-gray-300">Total Expected</p>
-                <p className="text-3xl font-bold text-white">{overallStats.totalExpected}</p>
+              <div>
+                <p className="text-gray-300">{S.LABEL_TOTAL_EXPECTED}</p>
+                <p className="text-white text-2xl font-bold">
+                  {overallStats.totalExpected}
+                </p>
               </div>
-              <div className="text-center">
-                <p className="text-xl text-gray-300">Total Attended</p>
-                <p className="text-3xl font-bold text-white">{overallStats.totalAttended}</p>
+              <div>
+                <p className="text-gray-300">{S.LABEL_TOTAL_ATTENDED}</p>
+                <p className="text-white text-2xl font-bold">
+                  {overallStats.totalAttended}
+                </p>
               </div>
-              <div className="text-center">
-                <p className="text-xl text-gray-300">Overall %</p>
-                <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-                  {overallStats.overallPercentage}%
+              <div>
+                <p className="text-gray-300">{S.LABEL_OVERALL_PERCENT}</p>
+                <p className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 text-2xl font-bold">
+                  {overallStats.overallPercent}%
                 </p>
               </div>
             </div>
-          </section>
+          </Card>
 
-          {/* Detailed Attendance Records */}
-          <section className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-white mb-4">Attendance Records</h2>
-            {attendanceRecords.length > 0 ? (
-              <table className="min-w-full text-white">
-                <thead className="bg-gray-800">
-                  <tr>
-                    <th className="border-b border-gray-600 p-3 text-left uppercase tracking-wider">Course</th>
-                    <th className="border-b border-gray-600 p-3 text-left uppercase tracking-wider">Date</th>
-                    <th className="border-b border-gray-600 p-3 text-left uppercase tracking-wider">Present</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {attendanceRecords.map((record) => (
-                    <tr key={`${record.courseId}-${record.date}`} className="hover:bg-gray-700 transition-colors">
-                      <td className="p-3">
-                        {teacherCourses.find((c) => c.id === record.courseId)?.name ?? record.courseId}
-                      </td>
-                      <td className="p-3">{record.date}</td>
-                      <td className="p-3">{record.present.join(', ') || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Detailed Records Table */}
+          <section>
+            <h2 className="text-3xl font-bold text-white mb-4">
+              {S.SECTION_RECORDS}
+            </h2>
+            {records.length > 0 ? (
+              <CommonTable columns={recordCols} data={records} />
             ) : (
-              <p className="text-center text-white">No attendance records available.</p>
+              <p className="text-white">{S.NO_RECORDS}</p>
             )}
           </section>
         </main>
@@ -205,4 +351,4 @@ const Attendance: React.FC = () => {
   );
 };
 
-export default Attendance;
+export default AttendancePage;

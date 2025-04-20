@@ -159,3 +159,55 @@ export function validateAdminForm(formData: AdminFormData): string[] {
 
   return errors;
 }
+
+/**
+ * ProfileFormData
+ * ----------------
+ * Defines the structure for the profile edit form data.
+ */
+export interface ProfileFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+/**
+ * validateProfileForm
+ * --------------------
+ * Validates the profile edit form, ensuring:
+ * - username is non-empty
+ * - email has a simple valid format
+ * - if password is provided, it and confirmPassword match and meet length requirements
+ *
+ * @param data - The form data to validate
+ * @returns An array of error messages (empty if valid)
+ */
+export function validateProfileForm(data: ProfileFormData): string[] {
+  const errors: string[] = [];
+
+  // Username validation
+  if (!data.username.trim()) {
+    errors.push("Username is required.");
+  }
+
+  // Email validation (simple regex)
+  const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  if (!data.email.trim()) {
+    errors.push("Email is required.");
+  } else if (!emailRegex.test(data.email)) {
+    errors.push("Email format is invalid.");
+  }
+
+  // Password and confirmation
+  if (data.password || data.confirmPassword) {
+    if (data.password.length < 8) {
+      errors.push("Password must be at least 8 characters.");
+    }
+    if (data.password !== data.confirmPassword) {
+      errors.push("Password and confirmation do not match.");
+    }
+  }
+
+  return errors;
+}

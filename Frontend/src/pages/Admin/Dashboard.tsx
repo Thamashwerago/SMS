@@ -11,11 +11,19 @@ import CourseCard, {
 } from "../../components/common/CourseCard";
 
 // Import service modules
+<<<<<<< Updated upstream
 import teacherService from "../../components/services/teacherService";
 import studentService from "../../components/services/studentService";
 import courseService from "../../components/services/courseService";
 import timetableService from "../../components/services/timetableService";
 import attendanceService from "../../components/services/attendanceService";
+=======
+import teacherService from "../../services/teacherService";
+import studentService from "../../services/studentService";
+import courseService from "../../services/courseService";
+import timetableService from "../../services/timetableService";
+import attendanceService from "../../services/attendanceService";
+>>>>>>> Stashed changes
 
 // Extracted string constants for easy maintenance
 const STRINGS = {
@@ -153,7 +161,10 @@ const Dashboard: React.FC = () => {
     }
 
     try {
+<<<<<<< Updated upstream
       // Fetch timetable data
+=======
+>>>>>>> Stashed changes
       const timetables = await timetableService.getAll();
       const today = new Date().toISOString().slice(0, 10);
       const todaysEntries = timetables.filter(
@@ -163,9 +174,15 @@ const Dashboard: React.FC = () => {
       setTimetableEntries(todaysEntries);
     } catch (error) {
       console.error(STRINGS.ERROR_FETCHING_TIMETABLE, error);
+<<<<<<< Updated upstream
       setError(STRINGS.ERROR_FETCHING_TIMETABLE);
     }
 
+=======
+    }
+
+    // Fetch attendance data and compute attendance metrics
+>>>>>>> Stashed changes
     try {
       // Fetch attendance data
       const attendances = await attendanceService.getAll();
@@ -290,6 +307,7 @@ const Dashboard: React.FC = () => {
         {/* Top Navbar */}
         <Navbar />
         <main className="p-4 sm:p-8">
+<<<<<<< Updated upstream
           {error && (
             <div className="mb-4 p-4 bg-red-500 text-white rounded-lg">
               {error}
@@ -308,6 +326,99 @@ const Dashboard: React.FC = () => {
                     title={STRINGS.TOTAL_STUDENTS}
                     value={metrics.totalStudents}
                     icon="👨‍🎓"
+=======
+          {/* Overview Cards Section */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <div className="hover:scale-105 transition-transform duration-300">
+              <Card
+                title={STRINGS.TOTAL_STUDENTS}
+                value={metrics.totalStudents}
+                icon="👨‍🎓"
+              />
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <Card
+                title={STRINGS.TOTAL_TEACHERS}
+                value={metrics.totalTeachers}
+                icon="👩‍🏫"
+              />
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <Card
+                title={STRINGS.TOTAL_COURSES}
+                value={metrics.totalCourses}
+                icon="📚"
+              />
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <Card
+                title={STRINGS.TODAYS_CLASSES}
+                value={metrics.todaysClasses}
+                icon="🗓️"
+              />
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <Card
+                title={STRINGS.AVG_ATTENDANCE}
+                value={`${metrics.averageAttendance}%`}
+                icon="✅"
+              />
+            </div>
+          </section>
+
+          {/* Refresh Data Button */}
+          <div className="flex justify-end mb-4">
+            <Button
+              label={STRINGS.REFRESH_DATA}
+              onClick={refreshData}
+              isLoading={loading}
+              variant="primary"
+            />
+          </div>
+
+          {/* Charts Section */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Institution Overview Bar Chart */}
+            <div className="bg-black bg-opacity-50 border border-indigo-500 p-6 sm:p-8 rounded-xl shadow-xl">
+              <Chart type="bar" data={barChartData} options={barChartOptions} />
+            </div>
+            {/* Attendance Distribution Pie Chart */}
+            <div className="bg-black bg-opacity-50 border border-indigo-500 p-6 sm:p-8 rounded-xl shadow-xl">
+              <Chart type="pie" data={pieChartData} options={pieChartOptions} />
+            </div>
+          </section>
+
+          {/* Upcoming Classes Section using CommonTable */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              {STRINGS.UPCOMING_CLASSES}
+            </h2>
+            {timetableEntries.length > 0 ? (
+              <CommonTable
+                columns={timetableColumns}
+                data={timetableEntries}
+                onRowClick={(row) => console.log("Timetable row clicked", row)}
+              />
+            ) : (
+              <p className="text-white">{STRINGS.NO_DATA}</p>
+            )}
+          </section>
+
+          {/* Featured Courses Section using CourseCard */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              {STRINGS.FEATURED_COURSES}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCourses.length > 0 ? (
+                featuredCourses.map((course) => (
+                  <CourseCard
+                    key={course.courseId}
+                    course={course}
+                    onClick={(courseData) =>
+                      console.log("Course clicked", courseData)
+                    }
+>>>>>>> Stashed changes
                   />
                 </div>
                 <div className="hover:scale-105 transition-transform duration-300">

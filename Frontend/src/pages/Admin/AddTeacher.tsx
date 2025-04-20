@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
-import userService from "../../components/services/userService";
-import teacherService from "../../components/services/teacherService";
+import userService from "../../services/userService";
+import teacherService from "../../services/teacherService";
 import { validateTeacherForm, TeacherFormData } from "../../utils/validation";
 import {
   TEACHER_PAGE_TITLE,
@@ -105,7 +105,7 @@ const AddTeacher: React.FC = () => {
         dob: formData.dob,
         gender: formData.gender,
         address: formData.address,
-        joiningDate: formData.joiningDate,
+        joiningDate: new Date(formData.joiningDate), // Convert string to Date object
         status: formData.status,
         role: "Teacher",
       });

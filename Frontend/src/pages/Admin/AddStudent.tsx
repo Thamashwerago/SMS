@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
-import userService from "../../components/services/userService";
-import studentService from "../../components/services/studentService";
+import userService from "../../services/userService";
+import studentService from "../../services/studentService";
 import { validateStudentForm, StudentFormData } from "../../utils/validation";
 import {
   STUDENT_PAGE_TITLE,

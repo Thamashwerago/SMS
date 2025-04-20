@@ -1,7 +1,8 @@
 // src/services/userService.ts
 import axios from 'axios';
 
-const API_BASE_URL = 'http://172.236.144.75:8080/api/user';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
 
 /**
  * User interface matching the backend User model.

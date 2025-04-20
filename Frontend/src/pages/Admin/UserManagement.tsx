@@ -4,7 +4,7 @@ import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
 import CommonButton from "../../components/common/Button";
-import userService from "../../components/services/userService";
+import userService from "../../services/userService";
 import {
   USER_MANAGEMENT_HEADING,
   SEARCH_PLACEHOLDER,

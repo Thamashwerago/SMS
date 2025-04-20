@@ -1,9 +1,11 @@
-import React, { useState, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/common/Sidebar';
-import Navbar from '../../components/common/Navbar';
-import CommonButton from '../../components/common/Button';
-import timetableService, { TimetableEntry } from '../../components/services/timetableService';
+import React, { useState, ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
+import Navbar from "../../components/common/Navbar";
+import CommonButton from "../../components/common/Button";
+import timetableService, {
+  TimetableEntry,
+} from "../../services/timetableService";
 import {
   ADD_TIMETABLE_HEADING,
   LABEL_DATE,
@@ -22,7 +24,7 @@ import {
   BUTTON_CANCEL,
   SUCCESS_MESSAGE_ADD,
   ERROR_MESSAGE_ADD,
-} from '../../constants/admin/addTimetableStrings';
+} from "../../constants/admin/addTimetableStrings";
 
 /**
  * AddTimetable Component
@@ -35,13 +37,13 @@ const AddTimetable: React.FC = () => {
   const navigate = useNavigate();
 
   // Local state to manage the form data.
-  const [formData, setFormData] = useState<Omit<TimetableEntry, 'id'>>({
-    date: '',
-    startTime: '',
-    endTime: '',
+  const [formData, setFormData] = useState<Omit<TimetableEntry, "id">>({
+    date: "",
+    startTime: "",
+    endTime: "",
     teacherId: 0,
     courseId: 0,
-    classroom: '',
+    classroom: "",
   });
 
   // State for displaying error and success messages.
@@ -57,7 +59,7 @@ const AddTimetable: React.FC = () => {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     // Convert numeric fields to numbers.
-    if (name === 'teacherId' || name === 'courseId') {
+    if (name === "teacherId" || name === "courseId") {
       setFormData({ ...formData, [name]: Number(value) });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -82,7 +84,7 @@ const AddTimetable: React.FC = () => {
       setSuccess(SUCCESS_MESSAGE_ADD);
       // Optionally, wait for a short duration before navigating.
       setTimeout(() => {
-        navigate('/admin/timetable');
+        navigate("/admin/timetable");
       }, 1500);
     } catch (err) {
       console.error("Error creating timetable entry:", err);
@@ -96,7 +98,7 @@ const AddTimetable: React.FC = () => {
    * Cancels the form submission and navigates back to the Timetable Management page.
    */
   const handleCancel = () => {
-    navigate('/admin/timetable-management');
+    navigate("/admin/timetable-management");
   };
 
   return (
@@ -113,11 +115,21 @@ const AddTimetable: React.FC = () => {
           </h1>
           <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8 max-w-xl mx-auto">
             {/* Display success or error messages */}
-            {error && <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">{error}</div>}
-            {success && <div className="mb-4 p-4 bg-green-500 bg-opacity-50 border border-green-700 rounded-xl text-white">{success}</div>}
+            {error && (
+              <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-4 bg-green-500 bg-opacity-50 border border-green-700 rounded-xl text-white">
+                {success}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mb-4">
-                <label htmlFor="date" className="block text-white mb-1">{LABEL_DATE}</label>
+                <label htmlFor="date" className="block text-white mb-1">
+                  {LABEL_DATE}
+                </label>
                 <input
                   id="date"
                   name="date"
@@ -131,7 +143,9 @@ const AddTimetable: React.FC = () => {
               </div>
               <div className="mb-4 grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="startTime" className="block text-white mb-1">{LABEL_START_TIME}</label>
+                  <label htmlFor="startTime" className="block text-white mb-1">
+                    {LABEL_START_TIME}
+                  </label>
                   <input
                     id="startTime"
                     name="startTime"
@@ -144,7 +158,9 @@ const AddTimetable: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="endTime" className="block text-white mb-1">{LABEL_END_TIME}</label>
+                  <label htmlFor="endTime" className="block text-white mb-1">
+                    {LABEL_END_TIME}
+                  </label>
                   <input
                     id="endTime"
                     name="endTime"
@@ -159,7 +175,9 @@ const AddTimetable: React.FC = () => {
               </div>
               <div className="mb-4 grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="teacherId" className="block text-white mb-1">{LABEL_TEACHER_ID}</label>
+                  <label htmlFor="teacherId" className="block text-white mb-1">
+                    {LABEL_TEACHER_ID}
+                  </label>
                   <input
                     id="teacherId"
                     name="teacherId"
@@ -172,7 +190,9 @@ const AddTimetable: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="courseId" className="block text-white mb-1">{LABEL_COURSE_ID}</label>
+                  <label htmlFor="courseId" className="block text-white mb-1">
+                    {LABEL_COURSE_ID}
+                  </label>
                   <input
                     id="courseId"
                     name="courseId"
@@ -186,7 +206,9 @@ const AddTimetable: React.FC = () => {
                 </div>
               </div>
               <div className="mb-4">
-                <label htmlFor="classroom" className="block text-white mb-1">{LABEL_CLASSROOM}</label>
+                <label htmlFor="classroom" className="block text-white mb-1">
+                  {LABEL_CLASSROOM}
+                </label>
                 <input
                   id="classroom"
                   name="classroom"
