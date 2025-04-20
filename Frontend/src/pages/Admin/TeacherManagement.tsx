@@ -1,10 +1,24 @@
-import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
+// src/pages/Admin/TeacherManagement.tsx
+
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  ChangeEvent,
+  Fragment,
+} from "react";
 import { useNavigate } from "react-router-dom";
+
+// Common UI components
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
 import CommonButton from "../../components/common/Button";
+
+// Services
 import teacherService from "../../services/teacherService";
+
+// String constants
 import {
   TEACHER_MANAGEMENT_HEADING,
   TEACHER_SEARCH_PLACEHOLDER,
@@ -15,6 +29,7 @@ import {
   TEACHER_CANCEL_BUTTON_LABEL,
   TEACHER_CLOSE_BUTTON_LABEL,
 } from "../../constants/admin/teacherManagementStrings";
+
 import {
   FETCH_TEACHERS_EXCEPTION,
   UPDATE_TEACHER_EXCEPTION,
@@ -22,7 +37,7 @@ import {
 } from "../../constants/exceptionMessages";
 
 /**
- * Teacher interface represents the teacher data model.
+ * Teacher interface represents our data model.
  */
 interface Teacher {
   id: number;
@@ -37,99 +52,85 @@ interface Teacher {
 }
 
 /**
- * TeacherManagement Component
- * -----------------------------
- * This component fetches teacher data from the backend using teacherService,
- * and displays the data in a searchable, sortable table using the reusable CommonTable component.
- * It also allows for editing and deleting teacher records, using CommonButton components
- * for actions. Exception handling is applied for each operation.
+ * TeacherManagement
+ * -----------------
+ * Fetches, displays, and allows CRUD on teacher records.
+ * - Searchable & sortable table via CommonTable
+ * - In‑row Edit/Delete buttons
+ * - Modal for viewing / editing a single teacher
  */
 const TeacherManagement: React.FC = () => {
   const navigate = useNavigate();
 
-  // State for teacher data fetched from backend.
+  // Full list of teachers
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  // State for search query.
-  const [searchQuery, setSearchQuery] = useState("");
-  // States for editing: selected teacher, editing mode, and edit data.
+  // Search input
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  // Modal & edit state
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editData, setEditData] = useState<{
     name: string;
     phone: string;
     address: string;
-  }>({
-    name: "",
-    phone: "",
-    address: "",
-  });
-  // State for error and success messages.
+  }>({ name: "", phone: "", address: "" });
+  // Feedback messages
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  /**
-   * fetchTeachers
-   * --------------
-   * Retrieves teacher data from the backend using teacherService.
-   * In case of an exception, displays a specific error message.
-   */
+  /** Fetch all teachers from backend */
   const fetchTeachers = async () => {
+    setError(null);
     try {
       const data = await teacherService.getAll();
-      setTeachers(data);
-    } catch (err) {
-      console.error("Error fetching teachers:", err);
+      // Format dates to YYYY-MM-DD
+      const formatted = data.map((t) => ({
+        ...t,
+        dob: new Date(t.dob).toISOString().split("T")[0],
+        joiningDate: new Date(t.joiningDate)
+          .toISOString()
+          .split("T")[0],
+      }));
+      setTeachers(formatted);
+    } catch {
       setError(FETCH_TEACHERS_EXCEPTION);
     }
   };
 
-  // Fetch teacher data when component mounts.
   useEffect(() => {
     fetchTeachers();
   }, []);
 
-  /**
-   * handleSearchChange
-   * ------------------
-   * Updates the search query state as the user types.
-   * @param e - Input change event.
-   */
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+  /** Handle search input change */
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(e.target.value);
-  };
 
-  /**
-   * filteredTeachers
-   * ----------------
-   * Computes a filtered list of teachers based on the search query.
-   */
-  const filteredTeachers = useMemo(() => {
-    return teachers.filter(
-      (teacher) =>
-        teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        teacher.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        teacher.role.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [teachers, searchQuery]);
+  /** Filter teachers by name/phone/role */
+  const filteredTeachers = useMemo(
+    () =>
+      teachers.filter(
+        (t) =>
+          t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.role.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [teachers, searchQuery]
+  );
 
-  /**
-   * columns
-   * -------
-   * Defines the columns for the CommonTable component.
-   */
+  /** Table columns definition */
   const columns: Column<Teacher>[] = useMemo(
     () => [
-      { header: "Teacher ID", accessor: "id" },
+      { header: "ID", accessor: "id" },
       { header: "Name", accessor: "name" },
       { header: "Phone", accessor: "phone" },
       { header: "Role", accessor: "role" },
       {
         header: "Actions",
-        accessor: (row: Teacher) => (
+        accessor: (row) => (
           <div className="flex space-x-2">
             <CommonButton
               label={TEACHER_EDIT_BUTTON_LABEL}
-              onClick={() => handleRowClick(row)}
+              onClick={() => openModal(row)}
               className="bg-blue-600 hover:bg-blue-700"
             />
             <CommonButton
@@ -144,13 +145,8 @@ const TeacherManagement: React.FC = () => {
     []
   );
 
-  /**
-   * handleRowClick
-   * --------------
-   * Opens the modal for editing teacher details and initializes the editData state.
-   * @param teacher - The selected teacher.
-   */
-  const handleRowClick = (teacher: Teacher) => {
+  /** Open detail/edit modal */
+  const openModal = (teacher: Teacher) => {
     setSelectedTeacher(teacher);
     setEditData({
       name: teacher.name,
@@ -158,114 +154,80 @@ const TeacherManagement: React.FC = () => {
       address: teacher.address,
     });
     setIsEditing(false);
+    setError(null);
+    setSuccess(null);
   };
 
-  /**
-   * handleEditChange
-   * ----------------
-   * Updates the editData state when inputs change in the modal.
-   * @param e - Input change event.
-   */
-  const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
-  };
+  /** Handle inline edit field changes */
+  const handleEditChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setEditData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  /**
-   * handleEditClick
-   * ---------------
-   * Enables editing mode for the teacher details modal.
-   */
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
+  /** Enter editing mode */
+  const handleEditClick = () => setIsEditing(true);
 
-  /**
-   * handleSave
-   * ----------
-   * Saves the updated teacher details using teacherService.update.
-   * On success, displays a success message and refreshes the teacher list.
-   */
+  /** Save updated teacher */
   const handleSave = async () => {
-    if (selectedTeacher) {
-      try {
-        await teacherService.update(selectedTeacher.id, {
-          name: editData.name,
-          phone: editData.phone,
-          address: editData.address,
-        });
-        setSuccess("Teacher updated successfully.");
-        setSelectedTeacher(null);
-        fetchTeachers();
-      } catch (err) {
-        console.error("Error updating teacher:", err);
-        setError(UPDATE_TEACHER_EXCEPTION);
-      }
+    if (!selectedTeacher) return;
+    setError(null);
+    try {
+      await teacherService.update(selectedTeacher.id, {
+        name: editData.name,
+        phone: editData.phone,
+        address: editData.address,
+      });
+      setSuccess("Teacher updated successfully.");
+      fetchTeachers();
+      setSelectedTeacher(null);
+    } catch {
+      setError(UPDATE_TEACHER_EXCEPTION);
     }
   };
 
-  /**
-   * handleDelete
-   * ------------
-   * Deletes a teacher record using teacherService.delete.
-   * On success, displays a success message and refreshes the teacher list.
-   * @param id - The teacher's ID.
-   */
+  /** Delete teacher record */
   const handleDelete = async (id: number) => {
+    setError(null);
     try {
       await teacherService.delete(id);
       setSuccess("Teacher deleted successfully.");
       fetchTeachers();
-    } catch (err) {
-      console.error("Error deleting teacher:", err);
+    } catch {
       setError(DELETE_TEACHER_EXCEPTION);
     }
   };
 
-  /**
-   * handleCancelEdit
-   * ----------------
-   * Cancels editing mode and resets the editData state to the selected teacher's current data.
-   */
+  /** Cancel edits */
   const handleCancelEdit = () => {
-    if (selectedTeacher) {
-      setEditData({
-        name: selectedTeacher.name,
-        phone: selectedTeacher.phone,
-        address: selectedTeacher.address,
-      });
-    }
+    if (!selectedTeacher) return;
+    setEditData({
+      name: selectedTeacher.name,
+      phone: selectedTeacher.phone,
+      address: selectedTeacher.address,
+    });
     setIsEditing(false);
   };
 
-  /**
-   * handleClose
-   * -----------
-   * Closes the teacher details modal.
-   */
-  const handleClose = () => {
-    setSelectedTeacher(null);
-  };
+  /** Close modal */
+  const handleClose = () => setSelectedTeacher(null);
 
   return (
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
-      {/* Sidebar Navigation */}
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        {/* Top Navbar */}
         <Navbar />
-        <main className="p-8">
-          {/* Header Section: Title, Search, and Add Teacher Button */}
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
+        <main className="p-8 space-y-6">
+
+          {/* Header: Title, Search & Add */}
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
               {TEACHER_MANAGEMENT_HEADING}
             </h1>
-            <div className="flex items-center mt-4 sm:mt-0">
+            <div className="flex">
               <input
                 type="text"
                 placeholder={TEACHER_SEARCH_PLACEHOLDER}
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-l-xl focus:outline-none text-white placeholder-gray-400"
+                className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-l-xl text-white placeholder-gray-400 focus:outline-none"
               />
               <CommonButton
                 label={TEACHER_ADD_BUTTON_LABEL}
@@ -275,130 +237,109 @@ const TeacherManagement: React.FC = () => {
             </div>
           </div>
 
-          {/* Display error message if exists */}
+          {/* Error & Success Alerts */}
           {error && (
-            <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">
+            <div className="p-3 bg-red-600 text-white rounded-md">
               {error}
             </div>
           )}
-
-          {/* Display success message if exists */}
           {success && (
-            <div className="mb-4 p-4 bg-green-500 bg-opacity-50 border border-green-700 rounded-xl text-white">
+            <div className="p-3 bg-green-600 text-white rounded-md">
               {success}
             </div>
           )}
 
-          {/* Teacher Data Table using CommonTable component */}
+          {/* Teachers Table */}
           <CommonTable
             columns={columns}
             data={filteredTeachers}
             initialSortColumn="name"
             initialSortDirection="asc"
-            onRowClick={handleRowClick}
+            onRowClick={openModal}
           />
 
-          {/* Teacher Details Modal */}
+          {/* Detail/Edit Modal */}
           {selectedTeacher && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-              <div className="bg-gray-800 p-8 rounded-xl border border-indigo-500 shadow-xl max-w-lg w-full mx-4 animate-fadeIn max-h-[80vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  Teacher Details
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Teacher ID:
-                    </span>
-                    <p className="text-gray-300">{selectedTeacher.id}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      User ID:
-                    </span>
-                    <p className="text-gray-300">{selectedTeacher.userId}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Name:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="name"
-                        value={editData.name}
-                        onChange={handleEditChange}
-                        placeholder="Enter teacher name"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">{selectedTeacher.name}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Phone:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="phone"
-                        value={editData.phone}
-                        onChange={handleEditChange}
-                        placeholder="Enter phone number"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">{selectedTeacher.phone}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      DOB:
-                    </span>
-                    <p className="text-gray-300">{selectedTeacher.dob}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Gender:
-                    </span>
-                    <p className="text-gray-300">{selectedTeacher.gender}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Address:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="address"
-                        value={editData.address}
-                        onChange={handleEditChange}
-                        placeholder="Enter address"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">{selectedTeacher.address}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Joining Date:
-                    </span>
-                    <p className="text-gray-300">
-                      {selectedTeacher.joiningDate}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Role:
-                    </span>
-                    <p className="text-gray-300">{selectedTeacher.role}</p>
-                  </div>
+              <div className="bg-gray-800 p-6 rounded-xl shadow-xl max-w-lg w-full space-y-4">
+                <h2 className="text-2xl font-bold text-white">Teacher Details</h2>
+
+                {/* ID & UserID (read-only) */}
+                <div>
+                  <span className="text-gray-300 font-semibold">ID:</span>
+                  <p className="text-white">{selectedTeacher.id}</p>
                 </div>
-                <div className="mt-6 flex justify-end space-x-4">
+                <div>
+                  <span className="text-gray-300 font-semibold">User ID:</span>
+                  <p className="text-white">{selectedTeacher.userId}</p>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label htmlFor="teacherName" className="text-gray-300 font-semibold">Name:</label>
                   {isEditing ? (
-                    <>
+                    <input
+                      id="teacherName"
+                      name="name"
+                      value={editData.name}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded text-white focus:outline-none"
+                      aria-label="Teacher Name"
+                      placeholder="Enter teacher name"
+                    />
+                  ) : (
+                    <p className="text-white">{selectedTeacher.name}</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="teacherPhone" className="text-gray-300 font-semibold">Phone:</label>
+                  {isEditing ? (
+                    <input
+                      id="teacherPhone"
+                      name="phone"
+                      value={editData.phone}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded text-white focus:outline-none"
+                      aria-label="Teacher Phone"
+                      placeholder="Enter phone number"
+                    />
+                  ) : (
+                    <p className="text-white">{selectedTeacher.phone}</p>
+                  )}
+                </div>
+
+                {/* DOB & Gender & Joining Date & Role (read-only) */}
+                <div>
+                  <span className="text-gray-300 font-semibold">DOB:</span>
+                  <p className="text-white">{selectedTeacher.dob}</p>
+                </div>
+                <div>
+                  <span className="text-gray-300 font-semibold">Gender:</span>
+                  <p className="text-white">{selectedTeacher.gender}</p>
+                </div>
+                <div>
+                  <span className="text-gray-300 font-semibold">Joining Date:</span>
+                  <p className="text-white">{selectedTeacher.joiningDate}</p>
+                </div>
+                <div>
+                  <label htmlFor="teacherAddress" className="text-gray-300 font-semibold">Address:</label>
+                  {isEditing ? (
+                    <input
+                      id="teacherAddress"
+                      name="address"
+                      value={editData.address}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded text-white focus:outline-none"
+                      aria-label="Teacher Address"
+                      placeholder="Enter address"
+                    />
+                  ) : (
+                    <p className="text-white">{selectedTeacher.address}</p>
+                  )}
+                </div>
+                <div className="flex justify-end space-x-3 mt-4">
+                  {isEditing ? (
+                    <Fragment>
                       <CommonButton
                         label={TEACHER_SAVE_BUTTON_LABEL}
                         onClick={handleSave}
@@ -409,7 +350,7 @@ const TeacherManagement: React.FC = () => {
                         onClick={handleCancelEdit}
                         className="bg-yellow-600 hover:bg-yellow-700"
                       />
-                    </>
+                    </Fragment>
                   ) : (
                     <CommonButton
                       label={TEACHER_EDIT_BUTTON_LABEL}

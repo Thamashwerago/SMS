@@ -1,8 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import {
-  AUTH_LOGIN_PATH,
-  AUTH_FALLBACK_ROUTE,
   AUTH_LOADING_MESSAGE,
 } from '../constants/RouteStrings';
 

@@ -1,61 +1,59 @@
+// src/App.tsx
+
 import React from 'react';
-<<<<<<< Updated upstream
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import AdminRoutes from './routes/AdminRoutes';
 import AuthRoutes from './routes/AuthRoutes';
 import StudentRoutes from './routes/StudentRoutes';
 import TeacherRoutes from './routes/TeacherRoutes';
-import ProtectedRoute from './components/ProtectedRoute';
-=======
-import { BrowserRouter as Router } from 'react-router-dom';
-// import AdminRoutes from './routes/AdminRoutes';
-// import AuthRoutes from './routes/AuthRoutes';
-// import StudentRoutes from './routes/StudentRoutes';
-import TeacherRoutes from './routes/TeacherRoutes';
->>>>>>> Stashed changes
+import ProtectedRoute from './routes//ProtectedRoute';
 
-const App: React.FC = () => {
-  return (
-    <Router>
-<<<<<<< Updated upstream
-      <Routes>
-        {/* Auth Routes (Public) */}
-        <Route path="/login/*" element={<AuthRoutes />} />
-        
-        {/* Protected Routes */}
-        <Route path="/admin/*" element={
+const App: React.FC = () => (
+  <Router>
+    <Routes>
+      {/* Public auth pages */}
+      <Route path="/login/*" element={<AuthRoutes />} />
+
+      {/* Admin-only area */}
+      <Route
+        path="/admin/*"
+        element={
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminRoutes />
           </ProtectedRoute>
-        } />
-        
-        <Route path="/student/*" element={
+        }
+      />
+
+      {/* Student-only area */}
+      <Route
+        path="/student/*"
+        element={
           <ProtectedRoute allowedRoles={['student']}>
             <StudentRoutes />
           </ProtectedRoute>
-        } />
-        
-        <Route path="/teacher/*" element={
+        }
+      />
+
+      {/* Teacher-only area */}
+      <Route
+        path="/teacher/*"
+        element={
           <ProtectedRoute allowedRoles={['teacher']}>
             <TeacherRoutes />
           </ProtectedRoute>
-        } />
-        
-        {/* Redirect root to login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-=======
-      {/* <AuthRoutes /> */}
-      {/* <AdminRoutes /> */}
-      {/* <StudentRoutes /> */}
-      <TeacherRoutes />
+        }
+      />
 
->>>>>>> Stashed changes
-    </Router>
-  );
-};
+      {/* Redirect root and unknown URLs to login */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  </Router>
+);
 
 export default App;

@@ -34,8 +34,8 @@ const teacherService = {
     const response = await axios.get(`${API_BASE_URL}/teacher`, {
       params: { page, size },
       auth: {
-        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
       }
     });
     // Assuming the backend response structure is a Page with a "content" array.
@@ -51,8 +51,8 @@ const teacherService = {
   getById: async (id: number): Promise<Teacher> => {
     const response = await axios.get(`${API_BASE_URL}/teacher/${id}`,{
       auth: {
-        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
       }
     });
     return response.data;
@@ -69,8 +69,8 @@ const teacherService = {
   create: async (teacher: Omit<Teacher, 'id'>): Promise<Teacher> => {
     const response = await axios.post(`${API_BASE_URL}/teacher`, teacher,{
       auth: {
-        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
       }
     });
     return response.data;
@@ -86,8 +86,8 @@ const teacherService = {
   update: async (id: number, teacher: Partial<Teacher>): Promise<Teacher> => {
     const response = await axios.put(`${API_BASE_URL}/teacher/${id}`, teacher,{
       auth: {
-        username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
+        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
       }
       });
     return response.data;
@@ -103,8 +103,8 @@ const teacherService = {
     await axios.delete(`${API_BASE_URL}/teacher/${id}`,
       {
         auth: {
-          username: JSON.parse(sessionStorage.getItem('user') || '{}').email,
-          password: JSON.parse(sessionStorage.getItem('user') || '{}').password
+          username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
+          password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
         }
       }
     );

@@ -72,7 +72,7 @@ export function setAuthToken(token: string): void {
       const payloadBase64 = token.split('.')[1];
       const payloadJson = atob(payloadBase64);
       const payload = JSON.parse(payloadJson);
-      return payload.role || '';
+      return payload.role ?? '';
     } catch (error) {
       console.error('Error extracting user role from token:', error);
       return '';
