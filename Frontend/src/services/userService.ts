@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api/user';
 
 /**
  * User interface matching the backend User model.
@@ -12,6 +12,7 @@ export interface User {
   username: string;
   email: string;
   password: string;
+  token: string;
   role: string;
 }
 
@@ -96,7 +97,7 @@ const userService = {
    * @returns A promise resolving to the user's role if credentials are valid;
    *          otherwise, returns "null" (as a string).
    */
-  isUser: async (username: string, password: string): Promise<string> => {
+  isUser: async (username: string, password: string): Promise<User> => {
     const response = await axios.post(`${API_BASE_URL}/login`, { "username": username, "password": password });
     return response.data;
   },

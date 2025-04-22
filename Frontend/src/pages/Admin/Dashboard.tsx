@@ -159,7 +159,7 @@ const Dashboard: React.FC = () => {
   // Load once
   useEffect(() => {
     refreshData();
-  }, [refreshData]);
+  }, []);
 
   const metrics = {
     totalStudents,
@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
     [coursesList]
   );
 
-  return (
+  return ( 
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
       <Sidebar />
       <div className="flex-1 flex flex-col">

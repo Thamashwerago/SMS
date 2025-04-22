@@ -1,8 +1,20 @@
 // src/services/timetableService.ts
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api/timetable';
+
+const navigate = useNavigate();
+const token = localStorage.getItem("authToken") ?? sessionStorage.getItem("authToken");
+if (!token) {
+  navigate('/login');
+  throw new Error('No authentication token found in session storage.');
+}
+const headers = {
+  'Authorization': `${token}`,
+  'Content-Type': 'application/json',
+};
 
 /**
  * TimetableEntry interface represents a timetable entry matching the backend TimeTable model.
@@ -32,12 +44,9 @@ const timetableService = {
    * otherwise we return the entire response data.
    */
   getAll: async (page: number = 0, size: number = 100): Promise<TimetableEntry[]> => {
-    const response = await axios.get(`${API_BASE_URL}/timetable`, {
+    const response = await axios.get(`${API_BASE_URL}`, {
       params: { page, size },
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+      headers: headers,
     });
     return response.data.content ?? response.data;
   },
@@ -49,11 +58,8 @@ const timetableService = {
    * @returns A promise resolving to the TimetableEntry.
    */
   getById: async (id: number): Promise<TimetableEntry> => {
-    const response = await axios.get(`${API_BASE_URL}/timetable/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/${id}`, {
+      headers: headers,
     });
     return response.data;
   },
@@ -67,11 +73,8 @@ const timetableService = {
    * @returns A promise resolving to the newly created TimetableEntry.
    */
   create: async (entry: Omit<TimetableEntry, 'id'>): Promise<TimetableEntry> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/timetable`, entry, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.post(`${API_BASE_URL}`, entry, {
+      headers: headers,
     });
     return response.data;
   },
@@ -84,11 +87,8 @@ const timetableService = {
    * @returns A promise resolving to the updated TimetableEntry.
    */
   update: async (id: number, entry: Partial<TimetableEntry>): Promise<TimetableEntry> => {
-    const response = await axios.put(`${API_BASE_URL}/timetable/${id}`, entry, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.put(`${API_BASE_URL}/${id}`, entry, {
+      headers: headers,
     });
     return response.data;
   },
@@ -100,11 +100,8 @@ const timetableService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/timetable/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    await axios.delete(`${API_BASE_URL}/${id}`, {
+      headers: headers,
     });
   },
 };

@@ -1,8 +1,20 @@
 // src/services/teacherService.ts
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api/teacher';
+
+const navigate = useNavigate();
+const token = localStorage.getItem("authToken") ?? sessionStorage.getItem("authToken");
+if (!token) {
+  navigate('/login');
+  throw new Error('No authentication token found in session storage.');
+}
+const headers = {
+  'Authorization': `${token}`,
+  'Content-Type': 'application/json',
+};
 
 /**
  * Teacher interface matching the backend Teacher model.
@@ -31,12 +43,9 @@ const teacherService = {
    * Assumes the backend returns a paginated result with a `content` property.
    */
   getAll: async (page: number = 0, size: number = 100): Promise<Teacher[]> => {
-    const response = await axios.get(`${API_BASE_URL}/teacher`, {
+    const response = await axios.get(`${API_BASE_URL}`, {
       params: { page, size },
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+      headers: headers,
     });
     // Assuming the backend response structure is a Page with a "content" array.
     return response.data.content;
@@ -49,11 +58,8 @@ const teacherService = {
    * @returns A promise resolving to the Teacher object.
    */
   getById: async (id: number): Promise<Teacher> => {
-    const response = await axios.get(`${API_BASE_URL}/teacher/${id}`,{
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/${id}`,{
+      headers: headers,
     });
     return response.data;
   },
@@ -67,11 +73,8 @@ const teacherService = {
    * @returns A promise resolving to the created Teacher object.
    */
   create: async (teacher: Omit<Teacher, 'id'>): Promise<Teacher> => {
-    const response = await axios.post(`${API_BASE_URL}/teacher`, teacher,{
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.post(`${API_BASE_URL}`, teacher,{
+      headers: headers,
     });
     return response.data;
   },
@@ -84,11 +87,8 @@ const teacherService = {
    * @returns A promise resolving to the updated Teacher object.
    */
   update: async (id: number, teacher: Partial<Teacher>): Promise<Teacher> => {
-    const response = await axios.put(`${API_BASE_URL}/teacher/${id}`, teacher,{
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.put(`${API_BASE_URL}/${id}`, teacher,{
+      headers: headers,
       });
     return response.data;
   },
@@ -100,14 +100,9 @@ const teacherService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/teacher/${id}`,
-      {
-        auth: {
-          username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-          password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-        }
-      }
-    );
+    await axios.delete(`${API_BASE_URL}/${id}`,{
+        headers: headers,
+      });
   },
 };
 

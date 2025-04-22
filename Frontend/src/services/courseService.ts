@@ -1,8 +1,20 @@
 // src/services/courseService.ts
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api';
+
+const navigate = useNavigate();
+const token = localStorage.getItem("authToken") ?? sessionStorage.getItem("authToken");
+if (!token) {
+  navigate('/login');
+  throw new Error('No authentication token found in session storage.');
+}
+const headers = {
+  'Authorization': `${token}`,
+  'Content-Type': 'application/json',
+};
 
 /**
  * Course interface matching the backend Course model.
@@ -35,12 +47,9 @@ const courseService = {
    * @returns A promise resolving to an array of Course objects.
    */
   getAll: async (page: number = 0, size: number = 100): Promise<Course[]> => {
-    const response = await axios.get(`${API_BASE_URL}/courses`, {
+    const response = await axios.get(`${API_BASE_URL}/course`, {
       params: { page, size },
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+      headers: headers
     });
     // If your backend returns a paginated response, adjust accordingly (e.g., return response.data.content).
     return response.data.content ?? response.data;
@@ -53,11 +62,8 @@ const courseService = {
    * @returns A promise resolving to a Course object.
    */
   getById: async (id: number): Promise<Course> => {
-    const response = await axios.get(`${API_BASE_URL}/courses/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/course/${id}`, {
+      headers: headers
     });
     return response.data;
   },
@@ -71,11 +77,8 @@ const courseService = {
    * @returns A promise resolving to the created Course object.
    */
   create: async (course: Omit<Course, 'id'>): Promise<Course> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/courses`, course, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.post(`${API_BASE_URL}/course`, course, {
+      headers: headers
     });
     return response.data;
   },
@@ -88,11 +91,8 @@ const courseService = {
    * @returns A promise resolving to the updated Course object.
    */
   update: async (id: number, course: Partial<Course>): Promise<Course> => {
-    const response = await axios.put(`${API_BASE_URL}/courses/${id}`, course, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.put(`${API_BASE_URL}/course/${id}`, course, {
+      headers: headers
     });
     return response.data;
   },
@@ -104,11 +104,8 @@ const courseService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courses/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    await axios.delete(`${API_BASE_URL}/course/${id}`, {
+      headers: headers
     });
   },
 
@@ -126,10 +123,7 @@ const courseService = {
   getAllCourseAssigns: async (page: number = 0, size: number = 100): Promise<CourseAssign[]> => {
     const response = await axios.get(`${API_BASE_URL}/courseassign`, {
       params: { page, size },
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+      headers: headers
     });
     // Adjust if your backend returns a paginated response.
     return response.data.content ?? response.data;
@@ -143,10 +137,7 @@ const courseService = {
   */
   getCourseAssignById: async (id: number): Promise<CourseAssign> => {
     const response = await axios.get(`${API_BASE_URL}/courseassign/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+      headers: headers
     });
     return response.data;
   },
@@ -160,11 +151,8 @@ const courseService = {
   * @returns A promise resolving to the created CourseAssign object.
   */
   createCourseAssign: async (courseAssign: Omit<CourseAssign, 'id'>): Promise<CourseAssign> => {
-   const response = await axios.post(`${API_BASE_URL}/admin/courseassign`, courseAssign, {
-     auth: {
-       username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-       password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-     }
+   const response = await axios.post(`${API_BASE_URL}/courseassign`, courseAssign, {
+     headers: headers
    });
    return response.data;
   },
@@ -178,10 +166,7 @@ const courseService = {
   */
   updateCourseAssign: async (id: number, courseAssign: Partial<CourseAssign>): Promise<CourseAssign> => {
    const response = await axios.put(`${API_BASE_URL}/courseassign/${id}`, courseAssign, {
-     auth: {
-       username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-       password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-     }
+     headers: headers
    });
    return response.data;
   },
@@ -194,10 +179,7 @@ const courseService = {
   */
   deleteCourseAssign: async (id: number): Promise<void> => {
     await axios.delete(`${API_BASE_URL}/courseassign/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+      headers: headers
     });
   },
 };

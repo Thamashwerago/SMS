@@ -1,8 +1,9 @@
 // src/services/attendanceService.ts
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8081/api';
+  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api/attendance';
 
 /**
  * Attendance interface representing the backend Attendance model.
@@ -15,6 +16,17 @@ export interface Attendance {
   date: string;   // ISO date string (e.g., "2025-04-02")
   status: string;
 }
+
+const navigate = useNavigate();
+const token = localStorage.getItem("authToken") ?? sessionStorage.getItem("authToken");
+if (!token) {
+  navigate('/login');
+  throw new Error('No authentication token found in session storage.');
+}
+const headers = {
+  'Authorization': `${token}`,
+  'Content-Type': 'application/json',
+};
 
 /**
  * attendanceService provides methods to perform CRUD operations
@@ -30,11 +42,8 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAll: async (): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}`, {
+      headers: headers,
     });
     return response.data;
   },
@@ -49,11 +58,8 @@ const attendanceService = {
    * @returns A promise resolving to the created Attendance record.
    */
   markAttendance: async (attendance: Omit<Attendance, 'id'>): Promise<Attendance> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/attendance`, attendance, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.post(`${API_BASE_URL}`, attendance, {
+      headers: headers,
     });
     return response.data;
   },
@@ -68,11 +74,8 @@ const attendanceService = {
    * @returns A promise resolving to the Attendance record.
    */
   getAttendanceById: async (id: number): Promise<Attendance> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/${id}`, {
+      headers: headers,
     });
     return response.data;
   },
@@ -88,11 +91,8 @@ const attendanceService = {
    * @returns A promise resolving to the updated Attendance record.
    */
   updateAttendance: async (id: number, attendance: Partial<Attendance>): Promise<Attendance> => {
-    const response = await axios.put(`${API_BASE_URL}/attendance/${id}`, attendance, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.put(`${API_BASE_URL}/${id}`, attendance, {
+      headers: headers,
     });
     return response.data;
   },
@@ -107,11 +107,8 @@ const attendanceService = {
    * @returns A promise that resolves when the deletion is complete.
    */
   unMarkAttendance: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/attendance/${id}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    await axios.delete(`${API_BASE_URL}/${id}`, {
+      headers: headers,
     });
   },
 
@@ -127,12 +124,9 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByStudentAndDate: async (studentId: number, startDate: string, endDate: string): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/studentAndDate`, {
-      params: { studentId, startDate, endDate },
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/studentwithdate/${studentId}`, {
+      params: { startDate, endDate },
+      headers: headers,
     });
     return response.data;
   },
@@ -147,11 +141,8 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByStudent: async (userId: number): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/student/${userId}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/student/${userId}`, {
+      headers: headers,
     });
     return response.data;
   },
@@ -166,11 +157,8 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByCourse: async (courseId: number): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/course/${courseId}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}/course/${courseId}`, {
+      headers: headers,
     });
     return response.data;
   },
@@ -186,11 +174,9 @@ const attendanceService = {
    * @returns A promise resolving to an array of Attendance records.
    */
   getAttendanceByStudentAndCourse: async (studentId: number, courseId: number): Promise<Attendance[]> => {
-    const response = await axios.get(`${API_BASE_URL}/attendance/student/${studentId}/course/${courseId}`, {
-      auth: {
-        username: JSON.parse(sessionStorage.getItem('user') ?? '{}').email,
-        password: JSON.parse(sessionStorage.getItem('user') ?? '{}').password
-      }
+    const response = await axios.get(`${API_BASE_URL}`, {
+      params: { studentId, courseId },
+      headers: headers,
     });
     return response.data;
   },

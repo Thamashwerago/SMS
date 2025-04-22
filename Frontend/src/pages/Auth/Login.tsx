@@ -23,7 +23,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
 
   // Form state
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -50,7 +50,7 @@ const Login: React.FC = () => {
 
   /** On mount: if already logged in, redirect */
   useEffect(() => {
-    const stored = sessionStorage.getItem("user");
+    const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (stored) {
       try {
         const { role, token } = JSON.parse(stored);
@@ -74,7 +74,7 @@ const Login: React.FC = () => {
     setError(null);
 
     // 1) Basic validation
-    if (!email.trim() || !password) {
+    if (!username.trim() || !password) {
       setError(LOGIN_STRINGS.ERROR_REQUIRED);
       return;
     }
@@ -82,28 +82,36 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       // 2) Authenticate
-      const role = await userService.isUser(email, password);
+      const user = await userService.isUser(username, password);
 
-      if (!role || role === "null") {
+      if (!user) {
         // 3a) Invalid credentials
         setError(LOGIN_STRINGS.ERROR_INVALID);
       } else {
         // 3b) Success: generate/store token
-        const token = `token_${role}_${Date.now()}`;
+        const token = user.token;
+        const role = user.role.toLowerCase().trim();
+        if (!token || !role) {
+          setError(LOGIN_STRINGS.ERROR_INVALID);
+          return;
+        }
+      
+        if (!rememberMe && localStorage.getItem("authToken")) {
+          // Clear localStorage if switching to sessionStorage
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("userRole");
+          localStorage.removeItem("user");
+        }
 
         if (rememberMe) {
           localStorage.setItem("authToken", token);
           localStorage.setItem("userRole", role);
+          localStorage.setItem("user", JSON.stringify(user));
         } else {
           sessionStorage.setItem("authToken", token);
           sessionStorage.setItem("userRole", role);
+          sessionStorage.setItem("user", JSON.stringify(user));
         }
-
-        // Save user info for auto‑login
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify({ role, token })
-        );
 
         dispatch(setCredentials({ token, role }));
         handleNavigation(role);
@@ -135,17 +143,17 @@ const Login: React.FC = () => {
           {/* Email Field */}
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-white font-semibold mb-1"
             >
-              {LOGIN_STRINGS.LABEL_EMAIL}
+              {LOGIN_STRINGS.LABEL_USERNAME}
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={LOGIN_STRINGS.PH_EMAIL}
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={LOGIN_STRINGS.PH_USERNAME}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded focus:outline-none text-white"
             />
