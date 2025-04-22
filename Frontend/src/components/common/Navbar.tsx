@@ -29,8 +29,9 @@ const Navbar: React.FC = () => {
   const handleLogout = useCallback(() => {
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("userRole");
+    sessionStorage.removeItem("user");
     navigate("/login");
-  }, [navigate]);
+  }, []);
 
   return (
     <nav className="bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg p-4 flex justify-between items-center">
