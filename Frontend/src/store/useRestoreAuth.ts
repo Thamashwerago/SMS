@@ -1,7 +1,6 @@
-// src/hooks/useRestoreAuth.ts
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setCredentials } from './authSlice';
+import { setCredentials, setRehydrated } from './authSlice';
 
 const useRestoreAuth = () => {
   const dispatch = useDispatch();
@@ -13,11 +12,15 @@ const useRestoreAuth = () => {
         const { token, role } = JSON.parse(stored);
         if (token && role) {
           dispatch(setCredentials({ token, role }));
+          return; // Skip rehydrated dispatch, already done inside setCredentials
         }
       } catch (e) {
         console.warn("Invalid auth data in storage.");
       }
     }
+
+    // Fallback: no credentials, still mark as rehydrated
+    dispatch(setRehydrated());
   }, [dispatch]);
 };
 

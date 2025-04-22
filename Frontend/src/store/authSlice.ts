@@ -20,15 +20,18 @@ const authSlice = createSlice({
     setCredentials(state, action: PayloadAction<{ token: string; role: string }>) {
       state.token = action.payload.token;
       state.role = action.payload.role;
-      state.rehydrated = true;
+      state.rehydrated = true; // also set this here
     },
     clearCredentials(state) {
       state.token = null;
       state.role = '';
-      state.rehydrated = true;
+      state.rehydrated = true; //  also mark as rehydrated after logout
+    },
+    setRehydrated(state) {
+      state.rehydrated = true; // new explicit action
     },
   },
 });
 
-export const { setCredentials, clearCredentials } = authSlice.actions;
+export const { setCredentials, clearCredentials, setRehydrated } = authSlice.actions;
 export default authSlice.reducer;

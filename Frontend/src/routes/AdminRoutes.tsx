@@ -1,5 +1,5 @@
 // src/routes/AdminRoutes.tsx
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 
 // Lazy-loaded components

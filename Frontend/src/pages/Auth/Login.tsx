@@ -7,11 +7,7 @@ import { setCredentials } from "../../store/authSlice";
 import Button from "../../components/common/Button";
 import userService from "../../services/userService";
 import { LOGIN_STRINGS } from "../../constants/auth/loginConsts";
-import {
-  ADMIN_DASHBOARD_PATH,
-  STUDENT_DASHBOARD_PATH,
-  TEACHER_DASHBOARD_PATH,
-} from "../../constants/RouteStrings";
+//import { ADMIN_DASHBOARD_PATH, STUDENT_DASHBOARD_PATH, TEACHER_DASHBOARD_PATH,} from "../../constants/RouteStrings";
 
 /**
  * Login Component
