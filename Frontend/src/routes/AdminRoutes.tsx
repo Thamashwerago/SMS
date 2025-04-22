@@ -1,22 +1,31 @@
-import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+// src/routes/AdminRoutes.tsx
+import React, { Suspense, lazy } from "react";
+import { Route, Navigate } from "react-router-dom";
 
-// Lazy load admin pages for performance optimization.
-const Dashboard = lazy(() => import('../pages/Admin/Dashboard'));
-const StudentManagement = lazy(() => import('../pages/Admin/StudentManagement'));
-const TeacherManagement = lazy(() => import('../pages/Admin/TeacherManagement'));
-const UserManagement = lazy(() => import('../pages/Admin/UserManagement'));
-const CourseManagement = lazy(() => import('../pages/Admin/CourseManagement'));
-const TimetableManagement = lazy(() => import('../pages/Admin/TimetableManagement'));
-const AttendanceManagement = lazy(() => import('../pages/Admin/AttendanceManagement'));
-const AdminProfile = lazy(() => import('../pages/Admin/Profile'));
-const AddAdmin = lazy(() => import('../pages/Admin/AddAdmin'));
-const AddStudent = lazy(() => import('../pages/Admin/AddStudent'));
-const AddTeacher = lazy(() => import('../pages/Admin/AddTeacher'));
-const AddCourse = lazy(() => import('../pages/Admin/AddCourse'));
-const AddTimetable = lazy(() => import('../pages/Admin/AddTimetable'));
+// Lazy-loaded components
+const Dashboard = lazy(() => import("../pages/Admin/Dashboard"));
+const StudentManagement = lazy(
+  () => import("../pages/Admin/StudentManagement")
+);
+const TeacherManagement = lazy(
+  () => import("../pages/Admin/TeacherManagement")
+);
+const UserManagement = lazy(() => import("../pages/Admin/UserManagement"));
+const CourseManagement = lazy(() => import("../pages/Admin/CourseManagement"));
+const TimetableManagement = lazy(
+  () => import("../pages/Admin/TimetableManagement")
+);
+const AttendanceManagement = lazy(
+  () => import("../pages/Admin/AttendanceManagement")
+);
+const AdminProfile = lazy(() => import("../pages/Admin/Profile"));
+const AddAdmin = lazy(() => import("../pages/Admin/AddAdmin"));
+const AddStudent = lazy(() => import("../pages/Admin/AddStudent"));
+const AddTeacher = lazy(() => import("../pages/Admin/AddTeacher"));
+const AddCourse = lazy(() => import("../pages/Admin/AddCourse"));
+const AddTimetable = lazy(() => import("../pages/Admin/AddTimetable"));
 
-// Import route string constants.
+// Routes
 import {
   ADMIN_BASE_PATH,
   ADMIN_DASHBOARD_PATH,
@@ -32,48 +41,134 @@ import {
   ADMIN_ADD_COURSE_PATH,
   ADMIN_ADD_TIMETABLE_PATH,
   ADMIN_PROFILE_PATH,
-} from '../constants/RouteStrings';
+} from "../constants/RouteStrings";
 
 /**
- * AdminRoutes Component
- * -----------------------
- * Defines all routes for the admin area with lazy loading for improved performance.
- * - The base admin URL is redirected to the dashboard.
- * - It includes routes for management, creation, and profile pages.
- * - Routes are wrapped in a Suspense component with a fallback UI while pages are loading.
- *
- * @returns A JSX element representing the admin routes.
+ * AdminRoutes — only <Route> children, no <Routes> here.
  */
-const AdminRoutes: React.FC = () => {
-  return (
-    <Suspense fallback={<div className="text-center text-white mt-8">Loading admin pages...</div>}>
-      <Routes>
-        {/* Redirect base admin URL to dashboard */}
-        <Route path={ADMIN_BASE_PATH} element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />} />
-
-        {/* Dashboard Route */}
-        <Route path={ADMIN_DASHBOARD_PATH} element={<Dashboard />} />
-
-        {/* Management Routes */}
-        <Route path={ADMIN_STUDENT_MANAGEMENT_PATH} element={<StudentManagement />} />
-        <Route path={ADMIN_TEACHER_MANAGEMENT_PATH} element={<TeacherManagement />} />
-        <Route path={ADMIN_USER_MANAGEMENT_PATH} element={<UserManagement />} />
-        <Route path={ADMIN_COURSE_MANAGEMENT_PATH} element={<CourseManagement />} />
-        <Route path={ADMIN_TIMETABLE_MANAGEMENT_PATH} element={<TimetableManagement />} />
-        <Route path={ADMIN_ATTENDANCE_MANAGEMENT_PATH} element={<AttendanceManagement />} />
-
-        {/* Creation Routes */}
-        <Route path={ADMIN_ADD_ADMIN_PATH} element={<AddAdmin />} />
-        <Route path={ADMIN_ADD_STUDENT_PATH} element={<AddStudent />} />
-        <Route path={ADMIN_ADD_TEACHER_PATH} element={<AddTeacher />} />
-        <Route path={ADMIN_ADD_COURSE_PATH} element={<AddCourse />} />
-        <Route path={ADMIN_ADD_TIMETABLE_PATH} element={<AddTimetable />} />
-
-        {/* Profile Route */}
-        <Route path={ADMIN_PROFILE_PATH} element={<AdminProfile />} />
-      </Routes>
-    </Suspense>
-  );
-};
+const AdminRoutes = [
+  <Route
+    key="admin-redirect"
+    path={ADMIN_BASE_PATH}
+    element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />}
+  />,
+  <Route
+    key="dashboard"
+    path={ADMIN_DASHBOARD_PATH}
+    element={
+      <Suspense fallback={<div>Loading Dashboard...</div>}>
+        <Dashboard />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="student"
+    path={ADMIN_STUDENT_MANAGEMENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading Student Management...</div>}>
+        <StudentManagement />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="teacher"
+    path={ADMIN_TEACHER_MANAGEMENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading Teacher Management...</div>}>
+        <TeacherManagement />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="user"
+    path={ADMIN_USER_MANAGEMENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading User Management...</div>}>
+        <UserManagement />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="course"
+    path={ADMIN_COURSE_MANAGEMENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading Course Management...</div>}>
+        <CourseManagement />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="timetable"
+    path={ADMIN_TIMETABLE_MANAGEMENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading Timetable Management...</div>}>
+        <TimetableManagement />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="attendance"
+    path={ADMIN_ATTENDANCE_MANAGEMENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading Attendance Management...</div>}>
+        <AttendanceManagement />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="add-admin"
+    path={ADMIN_ADD_ADMIN_PATH}
+    element={
+      <Suspense fallback={<div>Loading Add Admin...</div>}>
+        <AddAdmin />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="add-student"
+    path={ADMIN_ADD_STUDENT_PATH}
+    element={
+      <Suspense fallback={<div>Loading Add Student...</div>}>
+        <AddStudent />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="add-teacher"
+    path={ADMIN_ADD_TEACHER_PATH}
+    element={
+      <Suspense fallback={<div>Loading Add Teacher...</div>}>
+        <AddTeacher />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="add-course"
+    path={ADMIN_ADD_COURSE_PATH}
+    element={
+      <Suspense fallback={<div>Loading Add Course...</div>}>
+        <AddCourse />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="add-timetable"
+    path={ADMIN_ADD_TIMETABLE_PATH}
+    element={
+      <Suspense fallback={<div>Loading Add Timetable...</div>}>
+        <AddTimetable />
+      </Suspense>
+    }
+  />,
+  <Route
+    key="profile"
+    path={ADMIN_PROFILE_PATH}
+    element={
+      <Suspense fallback={<div>Loading Profile...</div>}>
+        <AdminProfile />
+      </Suspense>
+    }
+  />,
+];
 
 export default AdminRoutes;

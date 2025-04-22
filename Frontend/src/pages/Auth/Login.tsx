@@ -32,11 +32,14 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   // Map roles to dashboard routes
-  const roleToPath = useMemo(() => ({
-    admin: ADMIN_DASHBOARD_PATH,
-    student: STUDENT_DASHBOARD_PATH,
-    teacher: TEACHER_DASHBOARD_PATH,
-  }), []);
+  const roleToPath = useMemo(
+    () => ({
+      admin: "/admin/dashboard",
+      student: "/student/dashboard",
+      teacher: "/teacher/dashboard",
+    }),
+    []
+  );
 
   /** Redirect helper */
   const handleNavigation = useCallback((role: string) => {
@@ -50,17 +53,26 @@ const Login: React.FC = () => {
 
   /** On mount: if already logged in, redirect */
   useEffect(() => {
-    const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (stored) {
-      try {
-        const { role, token } = JSON.parse(stored);
+    const stored =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+
+    if (!stored) return;
+
+    try {
+      const { role, token } = JSON.parse(stored);
+
+      if (token && role) {
         dispatch(setCredentials({ token, role }));
-        handleNavigation(role);
-      } catch {
-        // malformed storage, ignore
+
+        // Delay navigation to avoid conflict with initial render
+        setTimeout(() => {
+          handleNavigation(role);
+        }, 0);
       }
+    } catch (e) {
+      console.error("Invalid user data in storage");
     }
-  }, [dispatch, handleNavigation]);
+  }, []);
 
   /**
    * Form submit:

@@ -1,20 +1,5 @@
 // src/services/timetableService.ts
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api/timetable';
-
-const navigate = useNavigate();
-const token = localStorage.getItem("authToken") ?? sessionStorage.getItem("authToken");
-if (!token) {
-  navigate('/login');
-  throw new Error('No authentication token found in session storage.');
-}
-const headers = {
-  'Authorization': `${token}`,
-  'Content-Type': 'application/json',
-};
+import axiosInstance from './axiosInstance';
 
 /**
  * TimetableEntry interface represents a timetable entry matching the backend TimeTable model.
@@ -44,9 +29,8 @@ const timetableService = {
    * otherwise we return the entire response data.
    */
   getAll: async (page: number = 0, size: number = 100): Promise<TimetableEntry[]> => {
-    const response = await axios.get(`${API_BASE_URL}`, {
+    const response = await axiosInstance.get(`/timetable`, {
       params: { page, size },
-      headers: headers,
     });
     return response.data.content ?? response.data;
   },
@@ -58,9 +42,7 @@ const timetableService = {
    * @returns A promise resolving to the TimetableEntry.
    */
   getById: async (id: number): Promise<TimetableEntry> => {
-    const response = await axios.get(`${API_BASE_URL}/${id}`, {
-      headers: headers,
-    });
+    const response = await axiosInstance.get(`/timetable/${id}`);
     return response.data;
   },
 
@@ -73,9 +55,7 @@ const timetableService = {
    * @returns A promise resolving to the newly created TimetableEntry.
    */
   create: async (entry: Omit<TimetableEntry, 'id'>): Promise<TimetableEntry> => {
-    const response = await axios.post(`${API_BASE_URL}`, entry, {
-      headers: headers,
-    });
+    const response = await axiosInstance.post(`/timetable`, entry);
     return response.data;
   },
 
@@ -87,9 +67,7 @@ const timetableService = {
    * @returns A promise resolving to the updated TimetableEntry.
    */
   update: async (id: number, entry: Partial<TimetableEntry>): Promise<TimetableEntry> => {
-    const response = await axios.put(`${API_BASE_URL}/${id}`, entry, {
-      headers: headers,
-    });
+    const response = await axiosInstance.put(`/timetable/${id}`, entry);
     return response.data;
   },
 
@@ -100,9 +78,7 @@ const timetableService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/${id}`, {
-      headers: headers,
-    });
+    await axiosInstance.delete(`/timetable/${id}`);
   },
 };
 

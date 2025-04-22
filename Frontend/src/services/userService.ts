@@ -1,8 +1,5 @@
 // src/services/userService.ts
-import axios from 'axios';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://172.236.144.75:8080/api/user';
+import axiosInstance from './axiosInstance';
 
 /**
  * User interface matching the backend User model.
@@ -26,7 +23,7 @@ const userService = {
    * @returns A promise resolving to an array of User objects.
    */
   getAll: async (): Promise<User[]> => {
-    const response = await axios.get(`${API_BASE_URL}/users`);
+    const response = await axiosInstance.get(`/user`);
     return response.data;
   },
 
@@ -40,7 +37,7 @@ const userService = {
    * @returns A promise resolving to the User object.
    */
   getById: async (id: number | string): Promise<User> => {
-    const response = await axios.get(`${API_BASE_URL}/users/${id}`);
+    const response = await axiosInstance.get(`/user/${id}`);
     return response.data;
   },
 
@@ -54,7 +51,7 @@ const userService = {
    * @returns A promise resolving to the newly created User object.
    */
   create: async (user: Omit<User, 'id'>): Promise<User> => {
-    const response = await axios.post(`${API_BASE_URL}/admin/users`, user);
+    const response = await axiosInstance.post(`/user`, user);
     return response.data;
   },
 
@@ -69,7 +66,7 @@ const userService = {
    * @returns A promise resolving to the updated User object.
    */
   update: async (id: number | string, user: Partial<User>): Promise<User> => {
-    const response = await axios.put(`${API_BASE_URL}/users/${id}`, user);
+    const response = await axiosInstance.put(`/user/${id}`, user);
     return response.data;
   },
 
@@ -83,7 +80,7 @@ const userService = {
    * @returns A promise that resolves when deletion is complete.
    */
   delete: async (id: number | string): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/users/${id}`);
+    await axiosInstance.delete(`/user/${id}`);
   },
 
   /**
@@ -98,7 +95,7 @@ const userService = {
    *          otherwise, returns "null" (as a string).
    */
   isUser: async (username: string, password: string): Promise<User> => {
-    const response = await axios.post(`${API_BASE_URL}/login`, { "username": username, "password": password });
+    const response = await axiosInstance.post(`/user/login`, { "username": username, "password": password });
     return response.data;
   },
 };
