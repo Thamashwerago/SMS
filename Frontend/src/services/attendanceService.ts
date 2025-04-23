@@ -14,6 +14,16 @@ export interface Attendance {
   status: string;
 }
 
+export interface AttendanceSummary {
+  userId: number;
+  role: string;
+  courseId: number;
+  totalCount: number;
+  presentCount: number;
+  absentCount: number;
+  attendancePercentage: number;
+}
+
 /**
  * attendanceService provides methods to perform CRUD operations
  * on attendance data. It mirrors the backend AttendanceService implementation.
@@ -151,7 +161,7 @@ const attendanceService = {
     return response.data;
   },
 
-  getAttendanceSummary: async (): Promise<Attendance[]> => {
+  getAttendanceSummary: async (): Promise<AttendanceSummary[]> => {
     const response = await axiosInstance.get(`/attendance/summary`, {
       params: { from: '2025-01-01', to: '2025-12-31'}
     }

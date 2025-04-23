@@ -146,9 +146,11 @@ const Dashboard: React.FC = () => {
     // Attendance
     try {
       const records = await attendanceService.getAttendanceSummary();
-      console.log(records);
-      //setAttendanceCounts({ present, absent: total - present });
-      //setAverageAttendance(total ? Math.round((present / total) * 100) : 0);
+      setAttendanceCounts({
+        present: records.reduce((sum, record) => sum + (record.presentCount || 0), 0),
+        absent: records.reduce((sum, record) => sum + (record.absentCount || 0), 0),
+      });
+      setAverageAttendance(records.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0) / records.length);
     } catch (e) {
       console.error(e);
       setError(STRINGS.ERROR_FETCHING_ATTENDANCE);
