@@ -57,4 +57,6 @@ public interface TeacherService {
      * @param id ID of the teacher to delete
      */
     void deleteTeacher(Long id);
+
+    Long getTeacherCount();
 }

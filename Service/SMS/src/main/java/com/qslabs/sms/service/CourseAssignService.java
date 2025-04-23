@@ -49,4 +49,6 @@ public interface CourseAssignService {
      * @param id ID of the assignment to delete
      */
     void deleteCourseAssign(Long id);
+
+    Long getAssignedCourseCountByUser(Long userId);
 }

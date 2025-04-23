@@ -52,4 +52,6 @@ public interface StudentService {
      * @return true if deletion was successful, false if a student not found
      */
     boolean deleteStudent(Long id);
+
+    Long getStudentCount();
 }

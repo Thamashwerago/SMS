@@ -2,6 +2,8 @@ package com.qslabs.sms.repository;
 
 import com.qslabs.sms.model.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -46,4 +48,17 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
      * @return List of attendance records
      */
     List<Attendance> findByUserIdAndCourseId(Long userId, Long courseId);
+
+    @Query("""
+    SELECT a.userId, a.role, a.courseId,
+           COUNT(a) AS totalCount,
+           SUM(CASE WHEN a.status = 'PRESENT' THEN 1 ELSE 0 END) AS presentCount
+    FROM Attendance a
+    WHERE a.date BETWEEN :fromDate AND :toDate
+      AND (:courseId IS NULL OR a.courseId = :courseId)
+      AND (:role IS NULL OR a.role = :role)
+    GROUP BY a.userId, a.role, a.courseId
+""")
+    List<Object[]> getRawAttendanceSummary(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate, @Param("courseId") Long courseId, @Param("role") String role);
+
 }

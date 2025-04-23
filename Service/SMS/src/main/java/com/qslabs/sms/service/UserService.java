@@ -2,7 +2,12 @@ package com.qslabs.sms.service;
 
 import com.qslabs.sms.dto.AuthDTO;
 import com.qslabs.sms.dto.UserDTO;
+import com.qslabs.sms.dto.UserResponseDTO;
 import com.qslabs.sms.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Service interface for managing users.
@@ -17,6 +22,8 @@ public interface UserService {
      * @return ID of the newly created user
      */
     Long createUser(UserDTO userDTO);
+
+    Page<UserResponseDTO> getAllUsers(Pageable pageable);
 
     /**
      * Validates user credentials.

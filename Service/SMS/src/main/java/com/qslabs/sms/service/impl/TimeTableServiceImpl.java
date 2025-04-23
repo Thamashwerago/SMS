@@ -13,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 /**
  * Implementation of the TimeTableService interface.
  * Provides business logic for managing timetable records for courses.
@@ -57,6 +59,7 @@ public class TimeTableServiceImpl implements TimeTableService {
      */
     @Override
     @CachePut(value = "timetable", key = "#result.id")
+    @CacheEvict(value = "todayClassCount", allEntries = true)
     public TimeTableDTO createTimeTable(TimeTableDTO timeTableDTO) {
         TimeTable timeTable = new TimeTable(timeTableDTO);
         timeTable = repository.save(timeTable);
@@ -73,6 +76,7 @@ public class TimeTableServiceImpl implements TimeTableService {
      */
     @Override
     @CachePut(value = "timetable", key = "#id")
+    @CacheEvict(value = "todayClassCount", allEntries = true)
     public TimeTableDTO updateTimeTable(Long id, TimeTableDTO timeTableDTO) {
         TimeTable timeTable = repository.findById(id).orElseThrow(() -> new TimetableNotFoundException(" with id: " + id));
 
@@ -94,10 +98,16 @@ public class TimeTableServiceImpl implements TimeTableService {
      * @throws TimetableNotFoundException if the record doesn't exist
      */
     @Override
-    @CacheEvict(value = "timetable", key = "#id")
+    @CacheEvict(value = { "timetable", "todayClassCount" }, key = "#id")
     public boolean deleteTimeTable(Long id) {
         TimeTable timeTable = repository.findById(id).orElseThrow(() -> new TimetableNotFoundException(" with id: " + id));
         repository.delete(timeTable);
         return true;
+    }
+
+    @Override
+    @Cacheable("todayClassCount")
+    public Long getTodayClassCount() {
+        return repository.getTodayClassCount(LocalDate.now());
     }
 }

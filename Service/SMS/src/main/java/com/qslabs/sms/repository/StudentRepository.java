@@ -2,6 +2,7 @@ package com.qslabs.sms.repository;
 
 import com.qslabs.sms.model.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -21,4 +22,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @return Optional containing Student if found
      */
     Optional<Student> findByContactNumber(String contactNumber);
+
+    @Query("SELECT COUNT(s) FROM Student s")
+    Long getStudentCount();
 }

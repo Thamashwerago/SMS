@@ -84,4 +84,10 @@ public class StudentController {
     public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         return studentService.deleteStudent(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getStudentCount() {
+        Long count = studentService.getStudentCount();
+        return ResponseEntity.ok(count);
+    }
 }

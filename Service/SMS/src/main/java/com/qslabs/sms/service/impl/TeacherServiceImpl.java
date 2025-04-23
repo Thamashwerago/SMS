@@ -75,6 +75,7 @@ public class TeacherServiceImpl implements TeacherService {
      */
     @Override
     @CachePut(value = "teacher", key = "#result.id")
+    @CacheEvict(value = "teacherCount", allEntries = true)
     public TeacherDTO createTeacher(TeacherDTO teacherDTO) {
         Teacher teacher = new Teacher(teacherDTO);
         teacher = teacherRepository.save(teacher);
@@ -90,6 +91,7 @@ public class TeacherServiceImpl implements TeacherService {
      */
     @Override
     @CachePut(value = "teacher", key = "#id")
+    @CacheEvict(value = "teacherCount", allEntries = true)
     public TeacherDTO updateTeacher(Long id, TeacherDTO teacherDTO) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new TeacherNotFoundException(" with id: " + id));
@@ -115,11 +117,17 @@ public class TeacherServiceImpl implements TeacherService {
      * @throws TeacherNotFoundException if teacher is not found
      */
     @Override
-    @CacheEvict(value = "teacher", key = "#id")
+    @CacheEvict(value = { "teacher", "teacherCount" }, key = "#id", allEntries = false)
     public void deleteTeacher(Long id) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new TeacherNotFoundException(" with id: " + id));
 
         teacherRepository.delete(teacher);
+    }
+
+    @Override
+    @Cacheable("teacherCount")
+    public Long getTeacherCount() {
+        return teacherRepository.getTeacherCount();
     }
 }

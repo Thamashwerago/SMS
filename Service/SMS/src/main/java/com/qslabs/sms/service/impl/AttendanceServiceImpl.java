@@ -1,6 +1,7 @@
 package com.qslabs.sms.service.impl;
 
 import com.qslabs.sms.dto.AttendanceDTO;
+import com.qslabs.sms.dto.AttendanceSummaryDTO;
 import com.qslabs.sms.exception.AttendanceNotFoundException;
 import com.qslabs.sms.model.Attendance;
 import com.qslabs.sms.repository.AttendanceRepository;
@@ -12,6 +13,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -144,4 +146,23 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<Attendance> attendanceList = attendanceRepository.findByUserIdAndCourseId(studentId, courseId);
         return attendanceList.stream().map(AttendanceDTO::new).collect(Collectors.toList());
     }
+
+    @Override
+    public List<AttendanceSummaryDTO> getAttendanceSummaryDTO(LocalDate fromDate, LocalDate toDate, Long courseId, String role) {
+        List<Object[]> rawData = attendanceRepository.getRawAttendanceSummary(fromDate, toDate, courseId, role);
+        List<AttendanceSummaryDTO> dtoList = new ArrayList<>();
+
+        for (Object[] row : rawData) {
+            Long userId = ((Number) row[0]).longValue();
+            String userRole = (String) row[1];
+            Long course = ((Number) row[2]).longValue();
+            Long total = ((Number) row[3]).longValue();
+            Long present = ((Number) row[4]).longValue();
+
+            dtoList.add(new AttendanceSummaryDTO(userId, userRole, course, total, present));
+        }
+
+        return dtoList;
+    }
+
 }

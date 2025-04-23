@@ -1,6 +1,7 @@
 package com.qslabs.sms.service;
 
 import com.qslabs.sms.dto.AttendanceDTO;
+import com.qslabs.sms.dto.AttendanceSummaryDTO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -77,4 +78,6 @@ public interface AttendanceService {
      * @return list of AttendanceDTOs
      */
     List<AttendanceDTO> getAttendanceByStudentAndCourse(Long studentId, Long courseId);
+
+    List<AttendanceSummaryDTO> getAttendanceSummaryDTO(LocalDate fromDate, LocalDate toDate, Long courseId, String role);
 }

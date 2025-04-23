@@ -2,12 +2,15 @@ package com.qslabs.sms.service.impl;
 
 import com.qslabs.sms.dto.AuthDTO;
 import com.qslabs.sms.dto.UserDTO;
+import com.qslabs.sms.dto.UserResponseDTO;
 import com.qslabs.sms.model.User;
 import com.qslabs.sms.repository.UserRepository;
 import com.qslabs.sms.service.UserService;
 import com.qslabs.sms.service.impl.RedisTokenService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -50,6 +53,11 @@ public class UserServiceImpl implements UserService {
         User newUser = new User(userDTO);
         newUser = userRepository.save(newUser);
         return Long.valueOf(newUser.getId());
+    }
+
+    @Override
+    public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserResponseDTO::new);
     }
 
     /**

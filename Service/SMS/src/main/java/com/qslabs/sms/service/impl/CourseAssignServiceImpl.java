@@ -57,6 +57,7 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      */
     @Override
     @CachePut(value = "courseAssign", key = "#result.id")
+    @CacheEvict(value = "userCourseCount", key = "#courseAssignDTO.userId")
     public CourseAssignDTO createCourseAssign(CourseAssignDTO courseAssignDTO){
         CourseAssign courseAssign = new CourseAssign(courseAssignDTO);
         courseAssign = courseAssignRepository.save(courseAssign);
@@ -73,6 +74,7 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      */
     @Override
     @CachePut(value = "courseAssign", key = "#id")
+    @CacheEvict(value = "userCourseCount", key = "#courseAssignDTO.userId")
     public CourseAssignDTO updateCourseAssign(Long id, CourseAssignDTO courseAssignDTO){
         CourseAssign courseAssign = courseAssignRepository.findById(id).orElseThrow(() -> new CourseAssignException(" with id " + id));
 
@@ -91,11 +93,17 @@ public class CourseAssignServiceImpl implements CourseAssignService {
      * @throws CourseAssignException if assignment does not exist
      */
     @Override
-    @CacheEvict(value = "courseAssign", key = "#id")
+    @CacheEvict(value = { "courseAssign", "userCourseCount" }, key = "#id", allEntries = false)
     public void deleteCourseAssign(Long id){
         if (!courseAssignRepository.existsById(id)) {
             throw new CourseAssignException(" with id " + id);
         }
         courseAssignRepository.deleteById(id);
+    }
+
+    @Override
+    @Cacheable(value = "userCourseCount", key = "#userId")
+    public Long getAssignedCourseCountByUser(Long userId) {
+        return courseAssignRepository.getAssignedCourseCountByUserId(userId);
     }
 }

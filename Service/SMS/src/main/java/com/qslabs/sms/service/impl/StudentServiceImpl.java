@@ -89,6 +89,7 @@ public class StudentServiceImpl implements StudentService {
      * @return the created StudentDTO
      */
     @Override
+    @CacheEvict(value = "studentCount", allEntries = true)
     @CachePut(value = "students", key = "#result.id")
     public StudentDTO addStudent(Student student) {
         Student savedStudent = studentRepository.save(student);
@@ -120,12 +121,18 @@ public class StudentServiceImpl implements StudentService {
      * @return true if deleted, false if not found
      */
     @Override
-    @CacheEvict(value = "students", key = "#id")
+    @CacheEvict(value = { "students", "studentCount" }, key = "#id", allEntries = false)
     public boolean deleteStudent(Long id) {
         if (studentRepository.existsById(id)) {
             studentRepository.deleteById(id);
             return true;
         }
         return false;
+    }
+
+    @Override
+    @Cacheable("studentCount")
+    public Long getStudentCount() {
+        return studentRepository.getStudentCount();
     }
 }

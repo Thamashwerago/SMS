@@ -58,6 +58,7 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @CachePut(value = "course", key = "#result.id")
+    @CacheEvict(value = "courseCount", allEntries = true)
     public CourseDTO createCourse(CourseDTO courseDTO) {
         Course course = new Course(courseDTO);
         course = courseRepository.save(course);
@@ -74,6 +75,7 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @CachePut(value = "course", key = "#id")
+    @CacheEvict(value = "courseCount", allEntries = true)
     public CourseDTO updateCourse(Long id, CourseDTO courseDTO) {
         Course course = courseRepository.findById(id).orElseThrow(() -> new CourseAssignException(" with id " + id));
 
@@ -94,11 +96,17 @@ public class CourseServiceImpl implements CourseService {
      * @throws CourseAssignException if course does not exist
      */
     @Override
-    @CacheEvict(value = "course", key = "#id")
+    @CacheEvict(value = {"course", "courseCount"}, key = "#id", allEntries = false)
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new CourseAssignException(" with id " + id);
         }
         courseRepository.deleteById(id);
+    }
+
+    @Override
+    @Cacheable("courseCount")
+    public Long getCourseCount() {
+        return courseRepository.count();
     }
 }

@@ -92,4 +92,10 @@ public class TimeTableController {
         service.deleteTimeTable(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/count/today")
+    public ResponseEntity<Long> getTodayClassCount() {
+        Long count = service.getTodayClassCount();
+        return ResponseEntity.ok(count);
+    }
 }

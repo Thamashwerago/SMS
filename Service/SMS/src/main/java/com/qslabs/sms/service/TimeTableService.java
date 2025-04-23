@@ -50,4 +50,6 @@ public interface TimeTableService {
      * @return true if deletion was successful, false otherwise
      */
     boolean deleteTimeTable(Long id);
+
+    Long getTodayClassCount();
 }

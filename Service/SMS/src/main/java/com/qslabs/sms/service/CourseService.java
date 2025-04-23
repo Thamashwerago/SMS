@@ -49,4 +49,6 @@ public interface CourseService {
      * @param id the ID of the course to delete
      */
     void deleteCourse(Long id);
+
+    Long getCourseCount();
 }

@@ -1,6 +1,7 @@
 package com.qslabs.sms.controller;
 
 import com.qslabs.sms.dto.AttendanceDTO;
+import com.qslabs.sms.dto.AttendanceSummaryDTO;
 import com.qslabs.sms.service.AttendanceService;
 import com.qslabs.sms.util.Constants;
 import jakarta.validation.Valid;
@@ -129,6 +130,17 @@ public class AttendanceController {
     public ResponseEntity<AttendanceDTO> deleteAttendance(@PathVariable Long id) {
         attendanceService.unMarkAttendance(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<List<AttendanceSummaryDTO>> getAttendanceSummary(
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(value = "courseId", required = false) Long courseId,
+            @RequestParam(value = "role", required = false) String role) {
+
+        List<AttendanceSummaryDTO> result = attendanceService.getAttendanceSummaryDTO(from, to, courseId, role);
+        return ResponseEntity.ok(result);
     }
 
 }

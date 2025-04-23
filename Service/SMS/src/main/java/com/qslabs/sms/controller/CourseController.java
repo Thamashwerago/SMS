@@ -2,6 +2,7 @@ package com.qslabs.sms.controller;
 
 
 import com.qslabs.sms.dto.CourseDTO;
+import com.qslabs.sms.service.CourseAssignService;
 import com.qslabs.sms.service.CourseService;
 import com.qslabs.sms.util.Constants;
 import jakarta.validation.Valid;
@@ -23,6 +24,9 @@ public class CourseController {
 
     @Autowired
     private CourseService courseService;
+
+    @Autowired
+    private CourseAssignService courseAssignService;
 
     /**
      * Retrieves all courses with pagination and sorting.
@@ -90,5 +94,13 @@ public class CourseController {
     public ResponseEntity<CourseDTO> deleteCourse(@PathVariable Long id) {
         courseService.deleteCourse(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getCourseCount(@RequestParam(required = false) Long userId) {
+        Long count = (userId != null)
+                ? courseAssignService.getAssignedCourseCountByUser(userId)
+                : courseService.getCourseCount();
+        return ResponseEntity.ok(count);
     }
 }

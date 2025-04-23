@@ -2,8 +2,11 @@ package com.qslabs.sms.repository;
 
 import com.qslabs.sms.model.TimeTable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -27,4 +30,7 @@ public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
      * @return List of TimeTable entries
      */
     List<TimeTable> findByCourseId(Long courseId);
+
+    @Query("SELECT COUNT(t) FROM TimeTable t WHERE t.date = :today")
+    Long getTodayClassCount(@Param("today") LocalDate today);
 }
