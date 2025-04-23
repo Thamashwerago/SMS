@@ -1,12 +1,9 @@
-// src/components/common/CommonTable.tsx
 import React, { useState, useMemo } from 'react';
+import clsx from 'clsx';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 /**
  * Column interface for CommonTable.
- * - header: The column header label.
- * - accessor: A key of T or a function to retrieve cell data.
- * - Cell (optional): Custom cell renderer function.
- * - sortFunction (optional): Custom function for sorting this column.
  */
 export interface Column<T> {
   header: string;
@@ -15,125 +12,161 @@ export interface Column<T> {
   sortFunction?: (a: T, b: T) => number;
 }
 
-/**
- * Props for CommonTable component.
- * - columns: Array of column definitions.
- * - data: Array of data objects to display.
- * - initialSortColumn (optional): The key of T to initially sort by.
- * - initialSortDirection (optional): The initial sort direction, defaulting to "asc".
- * - onRowClick (optional): Callback function when a row is clicked.
- */
 interface CommonTableProps<T> {
   columns: Column<T>[];
   data: T[];
   initialSortColumn?: keyof T;
   initialSortDirection?: 'asc' | 'desc';
   onRowClick?: (row: T) => void;
+  loading?: boolean;
+  noDataMessage?: string;
 }
 
-/**
- * CommonTable Component
- * -----------------------
- * A reusable table component that displays data based on given column definitions.
- * It supports sorting, optional row click callbacks, and a responsive design using Tailwind CSS.
- *
- * @param {CommonTableProps<T>} props - The properties for configuring the table.
- * @returns A JSX element representing the table.
- */
+const DEFAULT_SKELETON_ROWS = 5;
+
 const CommonTable = <T extends { id: string | number }>({
   columns,
   data,
   initialSortColumn,
   initialSortDirection = 'asc',
   onRowClick,
+  loading = false,
+  noDataMessage = 'No records to display',
 }: CommonTableProps<T>): React.ReactElement => {
-  // State for sorting: which column and direction.
   const [sortColumn, setSortColumn] = useState<keyof T | null>(initialSortColumn ?? null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
 
-  /**
-   * handleSort - Called when a table header is clicked.
-   * Toggles sorting direction if the same column is clicked again.
-   * @param col - The column being sorted.
-   */
   const handleSort = (col: Column<T>) => {
-    let columnKey: keyof T | null = null;
-    if (typeof col.accessor !== 'function') {
-      columnKey = col.accessor;
-    }
-    if (sortColumn === columnKey) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    const key = typeof col.accessor === 'function' ? null : col.accessor;
+    if (!key) return;
+    if (sortColumn === key) {
+      setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      setSortColumn(columnKey);
+      setSortColumn(key);
       setSortDirection('asc');
     }
   };
 
-  /**
-   * sortedData - Returns a sorted copy of the data array based on the active sort column and direction.
-   */
   const sortedData = useMemo(() => {
     if (!sortColumn) return data;
-    // Find column definition for the active sort column.
-    const colDef = columns.find(
-      (col) => typeof col.accessor !== 'function' && col.accessor === sortColumn
-    );
-    if (colDef?.sortFunction) {
-      return [...data].sort((a, b) => {
-        const result = colDef.sortFunction!(a, b);
-        return sortDirection === 'asc' ? result : -result;
-      });
-    } else {
-      return [...data].sort((a, b) => {
-        const aValue = (a[sortColumn] as string | number | Date | boolean | undefined) ?? "";
-        const bValue = (b[sortColumn] as string | number | Date | boolean | undefined) ?? "";
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
+    const colDef = columns.find((c) => c.sortFunction && c.accessor === sortColumn);
+    const compare = colDef?.sortFunction
+      ? colDef.sortFunction
+      : (a: T, b: T) => {
+          const aVal = (a[sortColumn] ?? '') as string | number;
+          const bVal = (b[sortColumn] ?? '') as string | number;
+          if (aVal < bVal) return -1;
+          if (aVal > bVal) return 1;
+          return 0;
+        };
+    return [...data].sort((a, b) => (sortDirection === 'asc' ? compare(a, b) : compare(b, a)));
   }, [data, sortColumn, sortDirection, columns]);
 
-  return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-700">
-        <thead className="bg-gray-800">
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={`header-${col.header}`}
-                onClick={() => handleSort(col)}
-                className="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer select-none"
-              >
-                {col.header}
-                {sortColumn &&
-                  typeof col.accessor !== 'function' &&
-                  col.accessor === sortColumn && (
-                    <span className="ml-2">{sortDirection === 'asc' ? '▲' : '▼'}</span>
-                  )}
-              </th>
+  // Render skeleton state
+  if (loading) {
+    const skeletonRows = Array.from({ length: DEFAULT_SKELETON_ROWS });
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr>
+              {columns.map((col) => (
+                <th
+                  key={col.header}
+                  className="px-6 py-3 bg-gray-800"
+                >
+                  <div className="h-4 bg-gray-700 rounded w-24 animate-pulse" />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {skeletonRows.map((_, i) => (
+              <tr key={i} className="bg-black">
+                {columns.map((col) => (
+                  <td key={col.header} className="px-6 py-4">
+                    <div className="h-4 bg-gray-700 rounded animate-pulse" />
+                  </td>
+                ))}
+              </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // No data state
+  if (!loading && sortedData.length === 0) {
+    return (
+      <div className="py-8 text-center text-gray-500">
+        {noDataMessage}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto shadow rounded-lg">
+      <table className="min-w-full divide-y divide-gray-700">
+        <thead className="bg-gray-800 sticky top-0 z-10">
+          <tr>
+            {columns.map((col) => {
+              const key = typeof col.accessor === 'function' ? col.header : col.accessor;
+              const isActive = key === sortColumn;
+              return (
+                <th
+                  key={col.header}
+                  onClick={() => handleSort(col)}
+                  scope="col"
+                  className={clsx(
+                    'px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer select-none',
+                    'focus:outline-none focus:ring-2 focus:ring-indigo-500',
+                    isActive ? 'bg-gray-700' : 'hover:bg-gray-700'
+                  )}
+                >
+                  <div className="flex items-center">
+                    <span>{col.header}</span>
+                    {isActive && (
+                      <span className="ml-1">
+                        {sortDirection === 'asc' ? (
+                          <ArrowUp size={12} />
+                        ) : (
+                          <ArrowDown size={12} />
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody className="bg-black divide-y divide-gray-800">
           {sortedData.map((row) => (
             <tr
               key={row.id}
-              onClick={() => onRowClick && onRowClick(row)}
-              className="hover:bg-gray-700 transition-colors cursor-pointer"
+              onClick={() => onRowClick?.(row)}
+              className={clsx(
+                'transition-colors cursor-pointer',
+                'odd:bg-black even:bg-gray-900',
+                'hover:bg-gray-700 focus:bg-gray-700',
+                onRowClick ? 'focus:outline-none focus:ring-2 focus:ring-indigo-500' : ''
+              )}
+              tabIndex={onRowClick ? 0 : -1}
             >
               {columns.map((col) => {
-                let cellContent;
-                if (col.Cell) {
-                  cellContent = col.Cell(row);
-                } else if (typeof col.accessor === 'function') {
-                  cellContent = col.accessor(row);
-                } else {
-                  cellContent = String(row[col.accessor] ?? '');
-                }
+                const content = col.Cell
+                  ? col.Cell(row)
+                  : typeof col.accessor === 'function'
+                  ? col.accessor(row)
+                  : String(row[col.accessor] ?? '');
                 return (
-                  <td key={`cell-${row.id}-${col.header}`} className="px-6 py-4 whitespace-nowrap text-white">
-                    {cellContent}
+                  <td
+                    key={`${row.id}-${col.header}`}
+                    className="px-6 py-4 max-w-xs truncate text-white"
+                    title={typeof content === 'string' ? content : undefined}
+                  >
+                    {content}
                   </td>
                 );
               })}
@@ -145,4 +178,4 @@ const CommonTable = <T extends { id: string | number }>({
   );
 };
 
-export default CommonTable;
+export default React.memo(CommonTable);

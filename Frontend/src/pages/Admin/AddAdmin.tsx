@@ -73,7 +73,7 @@ const AddAdmin: React.FC = () => {
         username: formData.name, // Using name as username; adjust if needed
         email: formData.email,
         password: formData.password,
-        role: "Admin",
+        role: "Admin"
       });
 
       // On success, display a success message and reset the form.
