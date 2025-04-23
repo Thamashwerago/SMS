@@ -70,6 +70,11 @@ const studentService = {
   delete: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/student/${id}`);
   },
+
+  count: async (): Promise<number> => {
+    const response = await axiosInstance.get(`/student/count`);
+    return response.data;
+  }
 };
 
 export default studentService;

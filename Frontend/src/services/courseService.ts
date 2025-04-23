@@ -149,6 +149,11 @@ const courseService = {
   deleteCourseAssign: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/courseassign/${id}`);
   },
+
+  count: async (): Promise<number> => {
+    const response = await axiosInstance.get(`/course/count`);
+    return response.data;
+  }
 };
 
 export default courseService;

@@ -80,6 +80,11 @@ const teacherService = {
   delete: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/teacher/${id}`);
   },
+
+  count: async (): Promise<number> => {
+    const response = await axiosInstance.get(`/teacher/count`);
+    return response.data;
+  }
 };
 
 export default teacherService;

@@ -151,7 +151,7 @@ const attendanceService = {
     return response.data;
   },
 
-  getAttendanceSummar: async (): Promise<Attendance[]> => {
+  getAttendanceSummary: async (): Promise<Attendance[]> => {
     const response = await axiosInstance.get(`/attendance/summary`, {
       params: { from: '2025-01-01', to: '2025-12-31'}
     }

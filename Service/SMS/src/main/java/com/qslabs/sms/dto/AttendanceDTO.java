@@ -28,7 +28,7 @@ public class AttendanceDTO {
     private LocalDate date;
 
     @NotNull(message = "Status cannot be null")
-    @Pattern(regexp = "Present|Absent", message = "Status must be either 'Present' or 'Absent'")
+    @Pattern(regexp = "PRESENT|ABSENT", message = "Status must be either 'PRESENT' or 'ABSENT'")
     private String status;
 
     /**

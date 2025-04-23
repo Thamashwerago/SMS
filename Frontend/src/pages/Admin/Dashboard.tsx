@@ -103,8 +103,8 @@ const Dashboard: React.FC = () => {
 
     // Students
     try {
-      const students = await studentService.getAll();
-      setTotalStudents(students.length);
+      const studentCount = await studentService.count();
+      setTotalStudents(studentCount);
     } catch (e) {
       console.error(e);
       setError(STRINGS.ERROR_FETCHING_STUDENTS);
@@ -112,8 +112,8 @@ const Dashboard: React.FC = () => {
 
     // Teachers
     try {
-      const teachers = await teacherService.getAll();
-      setTotalTeachers(teachers.length);
+      const teacherCount = await teacherService.count();
+      setTotalTeachers(teacherCount);
     } catch (e) {
       console.error(e);
       setError(STRINGS.ERROR_FETCHING_TEACHERS);
@@ -121,8 +121,9 @@ const Dashboard: React.FC = () => {
 
     // Courses
     try {
+      const courseCount = await courseService.count();
       const courses = await courseService.getAll();
-      setTotalCourses(courses.length);
+      setTotalCourses(courseCount);
       setCoursesList(courses);
     } catch (e) {
       console.error(e);
@@ -131,10 +132,11 @@ const Dashboard: React.FC = () => {
 
     // Today's timetable
     try {
+      const todayCourse = await timetableService.Count();
       const all = await timetableService.getAll();
       const today = new Date().toISOString().slice(0, 10);
       const todays = all.filter((e) => e.date === today);
-      setTodaysClasses(todays.length);
+      setTodaysClasses(todayCourse);
       setTimetableEntries(todays);
     } catch (e) {
       console.error(e);
@@ -143,11 +145,10 @@ const Dashboard: React.FC = () => {
 
     // Attendance
     try {
-      const records = await attendanceService.getAll();
-      const present = records.filter((r) => r.status.toLowerCase() === "present").length;
-      const total = records.length;
-      setAttendanceCounts({ present, absent: total - present });
-      setAverageAttendance(total ? Math.round((present / total) * 100) : 0);
+      const records = await attendanceService.getAttendanceSummary();
+      console.log(records);
+      //setAttendanceCounts({ present, absent: total - present });
+      //setAverageAttendance(total ? Math.round((present / total) * 100) : 0);
     } catch (e) {
       console.error(e);
       setError(STRINGS.ERROR_FETCHING_ATTENDANCE);

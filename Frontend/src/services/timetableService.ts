@@ -80,6 +80,11 @@ const timetableService = {
   delete: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/timetable/${id}`);
   },
+
+  Count: async (): Promise<number> => {
+    const response = await axiosInstance.get(`/timetable/count/today`);
+    return response.data;
+  }
 };
 
 export default timetableService;
