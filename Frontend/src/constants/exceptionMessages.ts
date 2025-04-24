@@ -1,6 +1,7 @@
 // user management exception messages
 
 export const FETCH_USERS_EXCEPTION = "Failed to fetch user data. Please refresh the page or try again later.";
+export const UPDATE_USER_EXCEPTION = "Failed to update user. Please try again.";
 
 // student management exception messages
 

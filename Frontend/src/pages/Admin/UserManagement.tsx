@@ -1,326 +1,276 @@
+// src/pages/Admin/UserManagement.tsx
 import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
 import CommonButton from "../../components/common/Button";
-import userService from "../../services/userService";
+import userService, { User } from "../../services/userService";
+import { Plus, Search, X } from "lucide-react";
 import {
   USER_MANAGEMENT_HEADING,
   SEARCH_PLACEHOLDER,
   ADD_ADMIN_BUTTON_LABEL,
 } from "../../constants/admin/userManagementStrings";
-import { FETCH_USERS_EXCEPTION } from "../../constants/exceptionMessages";
+import {
+  FETCH_USERS_EXCEPTION,
+  UPDATE_USER_EXCEPTION,
+} from "../../constants/exceptionMessages";
 
-/**
- * User interface represents a user object fetched from the backend.
- */
-interface User {
-  id: number;
+// Editable fields for user update
+interface EditableUserData {
   username: string;
   email: string;
   password: string;
-  role: string;
-  status?: string;
 }
 
-/**
- * UserManagement Component
- * --------------------------
- * Displays a table of users with search, sorting, and editing capabilities.
- * User data is fetched from the backend using userService.getAll().
- * The component utilizes CommonTable for rendering the table and CommonButton for actions.
- * Exception messages and literal strings are imported from separate constants files.
- */
 const UserManagement: React.FC = () => {
   const navigate = useNavigate();
-
-  // State to store user data fetched from backend.
   const [users, setUsers] = useState<User[]>([]);
-  // State for the search query input.
   const [searchQuery, setSearchQuery] = useState("");
-  // States for editing user details.
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editData, setEditData] = useState<{
-    username: string;
-    email: string;
-    password: string;
-  }>({
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<EditableUserData>({
     username: "",
     email: "",
     password: "",
   });
-  // State for error messages.
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  /**
-   * useEffect - Fetch user data from the backend when the component mounts.
-   */
+  // Fetch users on mount
   useEffect(() => {
-    const fetchUsers = async () => {
+    (async () => {
+      setLoading(true);
       try {
-        // Fetch all users using the userService.
-        const data = await userService.getAll();
-        // Map service data to ensure status is defined.
-        const mappedData = data.map((user: User) => ({
-          ...user,
-          status: user.status ?? "active",
-        }));
-        setUsers(mappedData);
+        const resp = await userService.getAll();
+        setUsers(Array.isArray(resp) ? resp : []);
       } catch (err) {
-        console.error("Error fetching users:", err);
+        console.error(err);
         setError(FETCH_USERS_EXCEPTION);
+      } finally {
+        setLoading(false);
       }
-    };
-    fetchUsers();
+    })();
   }, []);
 
-  /**
-   * handleSearchChange - Updates the search query state as the user types.
-   * @param e - Input change event.
-   */
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  // Filter users by search query
+  const filteredUsers = useMemo(
+    () =>
+      users.filter((u) =>
+        [u.username, u.email, u.role].some((field) =>
+          field.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      ),
+    [users, searchQuery]
+  );
 
-  /**
-   * filteredUsers - Filters the list of users based on the search query.
-   */
-  const filteredUsers = useMemo(() => {
-    return users.filter(
-      (user) =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [users, searchQuery]);
-
-  /**
-   * columns - Defines the table columns for the CommonTable component.
-   */
+  // Table columns
   const columns: Column<User>[] = useMemo(
     () => [
-      { header: "User ID", accessor: "id" },
+      { header: "ID", accessor: "id" },
       { header: "Username", accessor: "username" },
+      { header: "Email", accessor: "email" },
       { header: "Role", accessor: "role" },
     ],
     []
   );
 
-  /**
-   * handleRowClick - Opens the modal to edit user details.
-   * Initializes editData with the selected user's data.
-   * @param user - The selected user.
-   */
+  // Handlers
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
+    setSearchQuery(e.target.value);
+  const clearSearch = () => setSearchQuery("");
+  const goAddAdmin = () => navigate("/admin/add-admin");
+
   const handleRowClick = (user: User) => {
+    setError(null);
     setSelectedUser(user);
-    setEditData({
-      username: user.username,
-      email: user.email,
-      password: user.password,
-    });
+    setEditData({ username: user.username, email: user.email, password: "" });
     setIsEditing(false);
   };
 
-  /**
-   * handleEditChange - Updates the editData state as input values change.
-   * @param e - Input change event.
-   */
   const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setEditData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * handleEditClick - Enables editing mode for the user details modal.
-   */
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-  /**
-   * handleSave - Saves the edited user data.
-   * In a production scenario, an API call would update the backend.
-   */
-  const handleSave = () => {
-    if (selectedUser) {
-      setSelectedUser({
-        ...selectedUser,
-        username: editData.username,
-        email: editData.email,
-        password: editData.password,
-      });
+  const saveUser = async () => {
+    if (!selectedUser) return;
+    setError(null);
+    try {
+      const updated = await userService.update(selectedUser.id, editData);
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      setSelectedUser(updated);
       setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      setError(UPDATE_USER_EXCEPTION);
     }
   };
 
-  /**
-   * handleCancelEdit - Cancels editing and resets editData to the selected user's data.
-   */
-  const handleCancelEdit = () => {
-    setIsEditing(false);
+  const cancelEdit = () => {
     if (selectedUser) {
       setEditData({
         username: selectedUser.username,
         email: selectedUser.email,
-        password: selectedUser.password,
+        password: "",
       });
     }
+    setIsEditing(false);
+    setError(null);
   };
 
-  /**
-   * handleClose - Closes the user details modal and resets the selected user.
-   */
-  const handleClose = () => {
-    setSelectedUser(null);
-    navigate("/admin/user-management");
-  };
+  const closeModal = () => setSelectedUser(null);
 
   return (
-    <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
-      {/* Sidebar Navigation */}
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        {/* Top Navbar */}
         <Navbar />
-        <main className="p-8">
-          {/* Header Section with Search Input and Add Admin Button */}
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
+        <main className="p-8 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
               {USER_MANAGEMENT_HEADING}
             </h1>
-            <div className="flex items-center mt-4 sm:mt-0">
-              <input
-                type="text"
-                placeholder={SEARCH_PLACEHOLDER}
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-l-xl focus:outline-none text-white placeholder-gray-400"
-              />
+            <div className="flex items-center mt-4 sm:mt-0 space-x-2">
+              <div className="relative">
+                <Search className="absolute inset-y-0 left-0 pl-3 h-10 w-7 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={SEARCH_PLACEHOLDER}
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="pl-10 pr-3 py-2 bg-gray-800 text-white placeholder-gray-400 border border-indigo-500 rounded-l-md focus:outline-none focus:ring focus:ring-indigo-500"
+                />
+              </div>
+              {searchQuery && (
+                <CommonButton
+                  size="sm"
+                  variant="secondary"
+                  label=""
+                  leftIcon={<X />}
+                  onClick={clearSearch}
+                />
+              )}
               <CommonButton
+                size="md"
+                variant="primary"
                 label={ADD_ADMIN_BUTTON_LABEL}
-                onClick={() => navigate("/admin/add-admin")}
-                className="rounded-r-xl"
+                leftIcon={<Plus />}
+                onClick={goAddAdmin}
               />
             </div>
           </div>
 
-          {/* Display error message if any */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">
-              {error}
-            </div>
-          )}
+          {/* Error */}
+          {error && <div className="p-4 bg-red-600 bg-opacity-50 rounded">{error}</div>}
 
-          {/* Common Table Component to display user data */}
-          <CommonTable
-            columns={columns}
-            data={filteredUsers}
-            initialSortColumn="username"
-            initialSortDirection="asc"
-            onRowClick={handleRowClick}
-          />
+          {/* User Table */}
+          <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-lg shadow overflow-hidden">
+            <CommonTable
+              columns={columns}
+              data={filteredUsers}
+              loading={loading}
+              initialSortColumn="username"
+              initialSortDirection="asc"
+              onRowClick={handleRowClick}
+            />
+          </div>
 
-          {/* User Details Modal */}
+          {/* Detail Slide-over */}
           {selectedUser && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-              <div className="bg-gray-800 p-8 rounded-xl border border-indigo-500 shadow-xl max-w-lg w-full mx-4 animate-fadeIn">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  User Details
-                </h2>
+            <div className="fixed inset-0 z-50 flex">
+              {/* Overlay */}
+              <button
+                className="absolute inset-0 bg-black bg-opacity-70 border-0 w-full cursor-default"
+                onClick={closeModal}
+                aria-label="Close user details"
+              />
+
+              {/* Slide-over */}
+              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6">
+                {/* Close icon */}
+                <button
+                  onClick={closeModal}
+                  aria-label="Close"
+                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded hover:bg-gray-600 focus:outline-none focus:ring focus:ring-indigo-500"
+                >
+                  <X className="h-5 w-5 text-gray-300" />
+                </button>
+
+                <h2 className="text-2xl font-bold mb-4">User Details</h2>
+                {error && <p className="text-red-500 mb-2">{error}</p>}
+
                 <div className="space-y-4">
+                  {[
+                    { label: "Username", name: "username" },
+                    { label: "Email", name: "email" },
+                    { label: "Password", name: "password" },
+                  ].map((field) => (
+                    <div key={field.name}>
+                      <label
+                        htmlFor={field.name}
+                        className="block text-sm font-semibold mb-1 text-gray-200"
+                      >
+                        {field.label}
+                      </label>
+                      {isEditing ? (
+                        <input
+                          id={field.name}
+                          type={field.name === "password" ? "password" : "text"}
+                          name={field.name}
+                          value={
+                            editData[field.name as keyof EditableUserData]
+                          }
+                          onChange={handleEditChange}
+                          placeholder={`Enter ${field.label.toLowerCase()}`}
+                          className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                        />
+                      ) : (
+                        <p className="text-gray-300">
+                          {field.name === "password"
+                            ? "••••••"
+                            : selectedUser[field.name as keyof EditableUserData]}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+
                   <div>
-                    <span className="block text-white text-lg font-semibold">
-                      User ID:
-                    </span>
-                    <p className="text-gray-300">{selectedUser.id}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Username:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="username"
-                        value={editData.username}
-                        onChange={handleEditChange}
-                        placeholder="Username"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">{selectedUser.username}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Email:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        name="email"
-                        value={editData.email}
-                        onChange={handleEditChange}
-                        placeholder="Email"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">{selectedUser.email}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Password:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="password"
-                        value={editData.password}
-                        onChange={handleEditChange}
-                        placeholder="Password"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">{selectedUser.password}</p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Role:
-                    </span>
+                    <div className="block text-sm font-semibold mb-1 text-gray-200">
+                      Role
+                    </div>
                     <p className="text-gray-300">{selectedUser.role}</p>
                   </div>
                 </div>
-                <div className="mt-6 flex justify-end space-x-4">
+
+                <div className="mt-6 flex justify-end space-x-2">
                   {isEditing ? (
                     <>
                       <CommonButton
+                        size="sm"
+                        variant="primary"
                         label="Save"
-                        onClick={handleSave}
-                        className="bg-green-600 hover:bg-green-700"
+                        onClick={saveUser}
                       />
                       <CommonButton
+                        size="sm"
+                        variant="secondary"
                         label="Cancel"
-                        onClick={handleCancelEdit}
-                        className="bg-yellow-600 hover:bg-yellow-700"
+                        onClick={cancelEdit}
                       />
                     </>
                   ) : (
                     <CommonButton
+                      size="sm"
+                      variant="primary"
                       label="Edit"
-                      onClick={handleEditClick}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setIsEditing(true)}
                     />
                   )}
-                  <CommonButton
-                    label="Close"
-                    onClick={handleClose}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  />
                 </div>
-              </div>
+              </aside>
             </div>
           )}
         </main>
@@ -329,4 +279,4 @@ const UserManagement: React.FC = () => {
   );
 };
 
-export default UserManagement;
+export default React.memo(UserManagement);

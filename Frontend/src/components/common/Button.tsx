@@ -12,6 +12,7 @@ export interface CommonButtonProps extends ButtonHTMLAttributes<HTMLButtonElemen
   fullWidth?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  icon?: ReactNode;
 }
 
 /** Map variants to solid vs outline styles */

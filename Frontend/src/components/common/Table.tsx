@@ -3,16 +3,23 @@ import clsx from 'clsx';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 /**
- * Column interface for CommonTable.
+ * Column definition for CommonTable
  */
 export interface Column<T> {
+  /** Header label */
   header: string;
+  /** Key of T or custom cell renderer */
   accessor: keyof T | ((row: T) => React.ReactNode);
+  /** Optional custom cell render (overrides accessor) */
   Cell?: (row: T) => React.ReactNode;
+  /** Optional sorting function for this column */
   sortFunction?: (a: T, b: T) => number;
 }
 
-interface CommonTableProps<T> {
+/**
+ * Props for CommonTable: generic over row type T
+ */
+export interface CommonTableProps<T extends { id: string | number }> {
   columns: Column<T>[];
   data: T[];
   initialSortColumn?: keyof T;
@@ -24,21 +31,26 @@ interface CommonTableProps<T> {
 
 const DEFAULT_SKELETON_ROWS = 5;
 
-const CommonTable = <T extends { id: string | number }>({
-  columns,
-  data,
-  initialSortColumn,
-  initialSortDirection = 'asc',
-  onRowClick,
-  loading = false,
-  noDataMessage = 'No records to display',
-}: CommonTableProps<T>): React.ReactElement => {
+/**
+ * Generic table component with sorting, loading skeleton, and no-data state.
+ */
+function CommonTable<T extends { id: string | number }>(
+  {
+    columns,
+    data,
+    initialSortColumn,
+    initialSortDirection = 'asc',
+    onRowClick,
+    loading = false,
+    noDataMessage = 'No records to display',
+  }: Readonly<CommonTableProps<T>>
+): React.ReactElement {
   const [sortColumn, setSortColumn] = useState<keyof T | null>(initialSortColumn ?? null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
 
   const handleSort = (col: Column<T>) => {
-    const key = typeof col.accessor === 'function' ? null : col.accessor;
-    if (!key) return;
+    if (typeof col.accessor === 'function') return;
+    const key = col.accessor;
     if (sortColumn === key) {
       setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
@@ -50,39 +62,38 @@ const CommonTable = <T extends { id: string | number }>({
   const sortedData = useMemo(() => {
     if (!sortColumn) return data;
     const colDef = columns.find((c) => c.sortFunction && c.accessor === sortColumn);
-    const compare = colDef?.sortFunction
-      ? colDef.sortFunction
-      : (a: T, b: T) => {
-          const aVal = (a[sortColumn] ?? '') as string | number;
-          const bVal = (b[sortColumn] ?? '') as string | number;
-          if (aVal < bVal) return -1;
-          if (aVal > bVal) return 1;
-          return 0;
-        };
-    return [...data].sort((a, b) => (sortDirection === 'asc' ? compare(a, b) : compare(b, a)));
+    const compare = colDef?.sortFunction ?? ((a: T, b: T) => {
+      const aVal = a[sortColumn] as unknown as string | number;
+      const bVal = b[sortColumn] as unknown as string | number;
+      if (aVal < bVal) {
+        return -1;
+      } else if (aVal > bVal) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    return [...data].sort((a, b) => (sortDirection === 'asc' ? compare(a, b) : -compare(a, b)));
   }, [data, sortColumn, sortDirection, columns]);
 
-  // Render skeleton state
+  // Loading skeleton
   if (loading) {
-    const skeletonRows = Array.from({ length: DEFAULT_SKELETON_ROWS });
+    const skeletonRows = Array.from({ length: DEFAULT_SKELETON_ROWS }, (_, i) => i);
     return (
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr>
               {columns.map((col) => (
-                <th
-                  key={col.header}
-                  className="px-6 py-3 bg-gray-800"
-                >
+                <th key={col.header} className="px-6 py-3 bg-gray-800">
                   <div className="h-4 bg-gray-700 rounded w-24 animate-pulse" />
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {skeletonRows.map((_, i) => (
-              <tr key={i} className="bg-black">
+            {skeletonRows.map((idx) => (
+              <tr key={idx} className="bg-black">
                 {columns.map((col) => (
                   <td key={col.header} className="px-6 py-4">
                     <div className="h-4 bg-gray-700 rounded animate-pulse" />
@@ -97,12 +108,8 @@ const CommonTable = <T extends { id: string | number }>({
   }
 
   // No data state
-  if (!loading && sortedData.length === 0) {
-    return (
-      <div className="py-8 text-center text-gray-500">
-        {noDataMessage}
-      </div>
-    );
+  if (sortedData.length === 0) {
+    return <div className="py-8 text-center text-gray-500">{noDataMessage}</div>;
   }
 
   return (
@@ -120,19 +127,15 @@ const CommonTable = <T extends { id: string | number }>({
                   scope="col"
                   className={clsx(
                     'px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer select-none',
-                    'focus:outline-none focus:ring-2 focus:ring-indigo-500',
-                    isActive ? 'bg-gray-700' : 'hover:bg-gray-700'
+                    isActive ? 'bg-gray-700' : 'hover:bg-gray-700',
+                    'focus:outline-none focus:ring-2 focus:ring-indigo-500'
                   )}
                 >
                   <div className="flex items-center">
                     <span>{col.header}</span>
                     {isActive && (
                       <span className="ml-1">
-                        {sortDirection === 'asc' ? (
-                          <ArrowUp size={12} />
-                        ) : (
-                          <ArrowDown size={12} />
-                        )}
+                        {sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                       </span>
                     )}
                   </div>
@@ -149,17 +152,19 @@ const CommonTable = <T extends { id: string | number }>({
               className={clsx(
                 'transition-colors cursor-pointer',
                 'odd:bg-black even:bg-gray-900',
-                'hover:bg-gray-700 focus:bg-gray-700',
                 onRowClick ? 'focus:outline-none focus:ring-2 focus:ring-indigo-500' : ''
               )}
               tabIndex={onRowClick ? 0 : -1}
             >
               {columns.map((col) => {
-                const content = col.Cell
-                  ? col.Cell(row)
-                  : typeof col.accessor === 'function'
+                // Extract the nested ternary into a separate variable
+                const accessorValue = typeof col.accessor === 'function'
                   ? col.accessor(row)
                   : String(row[col.accessor] ?? '');
+                  
+                const content = col.Cell
+                  ? col.Cell(row)
+                  : accessorValue;
                 return (
                   <td
                     key={`${row.id}-${col.header}`}
@@ -176,6 +181,8 @@ const CommonTable = <T extends { id: string | number }>({
       </table>
     </div>
   );
-};
+}
 
-export default React.memo(CommonTable);
+export default React.memo(CommonTable) as <T extends { id: string | number }>(
+  props: CommonTableProps<T>
+) => React.ReactElement;
