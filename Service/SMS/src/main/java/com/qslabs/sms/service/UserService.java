@@ -23,6 +23,8 @@ public interface UserService {
      */
     Long createUser(UserDTO userDTO);
 
+    UserResponseDTO getUserById(Long id);
+
     Page<UserResponseDTO> getAllUsers(Pageable pageable);
 
     /**
