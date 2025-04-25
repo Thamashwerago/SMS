@@ -33,18 +33,14 @@ const Sidebar: React.FC = () => {
     <aside
       aria-label="Application navigation"
       className={clsx(
-        "flex flex-col bg-gray-800 text-white shadow-lg",
-        "w-64 min-h-screen"
+        "fixed top-0 left-0 h-screen w-64",
+        "flex flex-col bg-gray-800 text-white shadow-lg z-50"
       )}
     >
       {/* Logo Header */}
       <div className="flex items-center justify-center px-4 py-8 bg-gray-900">
         <Link to={`/${role}/dashboard`}>
-          <img
-            src={logo}
-            alt="QuantumSync Labs Logo"
-            className="h-50 w-auto"
-          />
+          <img src={logo} alt="QuantumSync Labs Logo" className="h-50 w-auto" />
         </Link>
       </div>
 

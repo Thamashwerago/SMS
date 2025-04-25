@@ -123,11 +123,11 @@ const UserManagement: React.FC = () => {
   const closeModal = () => setSelectedUser(null);
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-        <main className="p-8 space-y-6">
+        <main className="p-8 space-y-6 overflow-x-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
@@ -164,7 +164,9 @@ const UserManagement: React.FC = () => {
           </div>
 
           {/* Error */}
-          {error && <div className="p-4 bg-red-600 bg-opacity-50 rounded">{error}</div>}
+          {error && (
+            <div className="p-4 bg-red-600 bg-opacity-50 rounded">{error}</div>
+          )}
 
           {/* User Table */}
           <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-lg shadow overflow-hidden">
@@ -220,9 +222,7 @@ const UserManagement: React.FC = () => {
                           id={field.name}
                           type={field.name === "password" ? "password" : "text"}
                           name={field.name}
-                          value={
-                            editData[field.name as keyof EditableUserData]
-                          }
+                          value={editData[field.name as keyof EditableUserData]}
                           onChange={handleEditChange}
                           placeholder={`Enter ${field.label.toLowerCase()}`}
                           className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
@@ -231,7 +231,9 @@ const UserManagement: React.FC = () => {
                         <p className="text-gray-300">
                           {field.name === "password"
                             ? "••••••"
-                            : selectedUser[field.name as keyof EditableUserData]}
+                            : selectedUser[
+                                field.name as keyof EditableUserData
+                              ]}
                         </p>
                       )}
                     </div>

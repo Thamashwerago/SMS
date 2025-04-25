@@ -235,16 +235,14 @@ const TeacherManagement: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-        <main className="p-6 space-y-8">
+        <main className="p-6 space-y-8 overflow-x-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-center">
-            <h1 className="text-3xl font-bold">
-              {TEACHER_MANAGEMENT_HEADING}
-            </h1>
+            <h1 className="text-3xl font-bold">{TEACHER_MANAGEMENT_HEADING}</h1>
             <div className="flex mt-4 sm:mt-0 space-x-2">
               <div className="relative">
                 <Search className="absolute inset-y-0 left-0 pl-3 h-11 w-7 text-gray-400" />
@@ -319,9 +317,7 @@ const TeacherManagement: React.FC = () => {
                   <X className="h-5 w-5 text-gray-300" />
                 </button>
 
-                <h2 className="text-2xl font-semibold mb-4">
-                  Teacher Details
-                </h2>
+                <h2 className="text-2xl font-semibold mb-4">Teacher Details</h2>
 
                 <div className="space-y-4">
                   {editableFields.map((field) => {

@@ -115,9 +115,9 @@ const AddCourse: React.FC = () => {
   return (
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 relative">
+        <main className="flex-1 p-8 relative overflow-x-auto">
           {/* Back Button */}
           <CommonButton
             label="Back"
@@ -140,7 +140,9 @@ const AddCourse: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Code & Name */}
                 <div>
-                  <label className="block mb-2 font-semibold">{COURSE_STRINGS.LABEL_CODE}</label>
+                  <label className="block mb-2 font-semibold">
+                    {COURSE_STRINGS.LABEL_CODE}
+                  </label>
                   <input
                     name="code"
                     value={formData.code}
@@ -150,7 +152,9 @@ const AddCourse: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 font-semibold">{COURSE_STRINGS.LABEL_NAME}</label>
+                  <label className="block mb-2 font-semibold">
+                    {COURSE_STRINGS.LABEL_NAME}
+                  </label>
                   <input
                     name="name"
                     value={formData.name}
@@ -164,10 +168,13 @@ const AddCourse: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 {/* Credits & Duration */}
                 <div>
-                  <label className="block mb-2 font-semibold">{COURSE_STRINGS.LABEL_CREDITS}</label>
+                  <label className="block mb-2 font-semibold">
+                    {COURSE_STRINGS.LABEL_CREDITS}
+                  </label>
                   <input
                     name="credits"
-                    type="number" min="0"
+                    type="number"
+                    min="0"
                     value={formData.credits}
                     onChange={handleChange}
                     placeholder={COURSE_STRINGS.PLACEHOLDER_CREDITS}
@@ -175,10 +182,13 @@ const AddCourse: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 font-semibold">{COURSE_STRINGS.LABEL_DURATION}</label>
+                  <label className="block mb-2 font-semibold">
+                    {COURSE_STRINGS.LABEL_DURATION}
+                  </label>
                   <input
                     name="duration"
-                    type="number" min="0"
+                    type="number"
+                    min="0"
                     value={formData.duration}
                     onChange={handleChange}
                     placeholder={COURSE_STRINGS.PLACEHOLDER_DURATION}
@@ -188,7 +198,9 @@ const AddCourse: React.FC = () => {
               </div>
 
               <div>
-                <label className="block mb-2 font-semibold">{COURSE_STRINGS.LABEL_DESCRIPTION}</label>
+                <label className="block mb-2 font-semibold">
+                  {COURSE_STRINGS.LABEL_DESCRIPTION}
+                </label>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -201,7 +213,12 @@ const AddCourse: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Teacher assignment */}
                 <div>
-                  <label htmlFor="teacherSelect" className="block mb-2 font-semibold">Assign Teacher</label>
+                  <label
+                    htmlFor="teacherSelect"
+                    className="block mb-2 font-semibold"
+                  >
+                    Assign Teacher
+                  </label>
                   <select
                     id="teacherSelect"
                     name="teacherId"
@@ -211,19 +228,33 @@ const AddCourse: React.FC = () => {
                     required
                   >
                     <option value="">Select Teacher</option>
-                    {teachers.map(t => <option key={t.id} value={t.id}>{t.username}</option>)}
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.username}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="studentsSelect" className="block mb-2 font-semibold">Assign Students</label>
+                  <label
+                    htmlFor="studentsSelect"
+                    className="block mb-2 font-semibold"
+                  >
+                    Assign Students
+                  </label>
                   <select
                     id="studentsSelect"
-                    name="studentIds" multiple
+                    name="studentIds"
+                    multiple
                     value={formData.studentIds.map(String)}
                     onChange={handleChange}
                     className="w-full h-32 px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none text-white"
                   >
-                    {students.map(s => <option key={s.id} value={s.id}>{s.username}</option>)}
+                    {students.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.username}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -232,11 +263,16 @@ const AddCourse: React.FC = () => {
               <div className="flex space-x-4">
                 <CommonButton
                   label="Clear"
-                  variant="secondary" size="md" icon={<X />}
-                  onClick={handleClear} disabled={loading}
+                  variant="secondary"
+                  size="md"
+                  icon={<X />}
+                  onClick={handleClear}
+                  disabled={loading}
                 />
                 <CommonButton
-                  variant="primary" size="md" label={COURSE_STRINGS.BUTTON_SUBMIT}
+                  variant="primary"
+                  size="md"
+                  label={COURSE_STRINGS.BUTTON_SUBMIT}
                   isLoading={loading}
                 />
               </div>

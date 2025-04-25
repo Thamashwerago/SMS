@@ -105,10 +105,10 @@ const AddTimetable: React.FC = () => {
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
       {/* Sidebar Navigation */}
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         {/* Top Navbar */}
         <Navbar />
-        <main className="p-6 md:p-8">
+        <main className="flex-1 p-6 md:p-8 overflow-x-auto">
           {/* Page Heading */}
           <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-8">
             {ADD_TIMETABLE_HEADING}

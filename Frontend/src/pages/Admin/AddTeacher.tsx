@@ -115,9 +115,9 @@ const AddTeacher: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 relative">
+        <main className="flex-1 p-8 relative overflow-x-auto">
           {/* Back Button */}
           <button
             onClick={handleBack}
@@ -139,15 +139,21 @@ const AddTeacher: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Username */}
                 <div>
-                  <label htmlFor="username" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="username"
+                    className="block mb-2 font-semibold"
+                  >
                     {TEACHER_LABEL_USERNAME}
                   </label>
                   <input
-                    id="username" name="username"
+                    id="username"
+                    name="username"
                     placeholder={TEACHER_PLACEHOLDER_USERNAME}
-                    value={formData.username} onChange={handleChange}
+                    value={formData.username}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
                 {/* Email */}
                 <div>
@@ -155,38 +161,56 @@ const AddTeacher: React.FC = () => {
                     {TEACHER_LABEL_EMAIL}
                   </label>
                   <input
-                    id="email" name="email" type="email"
+                    id="email"
+                    name="email"
+                    type="email"
                     placeholder={TEACHER_PLACEHOLDER_EMAIL}
-                    value={formData.email} onChange={handleChange}
+                    value={formData.email}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Password */}
                 <div>
-                  <label htmlFor="password" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="password"
+                    className="block mb-2 font-semibold"
+                  >
                     {TEACHER_LABEL_PASSWORD}
                   </label>
                   <input
-                    id="password" name="password" type="password"
+                    id="password"
+                    name="password"
+                    type="password"
                     placeholder={TEACHER_PLACEHOLDER_PASSWORD}
-                    value={formData.password} onChange={handleChange}
+                    value={formData.password}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
                 {/* Confirm Password */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block mb-2 font-semibold"
+                  >
                     {TEACHER_LABEL_CONFIRM_PASSWORD}
                   </label>
                   <input
-                    id="confirmPassword" name="confirmPassword" type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
                     placeholder={TEACHER_PLACEHOLDER_CONFIRM_PASSWORD}
-                    value={formData.confirmPassword} onChange={handleChange}
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
               </div>
 
@@ -197,11 +221,14 @@ const AddTeacher: React.FC = () => {
                     {TEACHER_LABEL_NAME}
                   </label>
                   <input
-                    id="name" name="name"
+                    id="name"
+                    name="name"
                     placeholder={TEACHER_PLACEHOLDER_NAME}
-                    value={formData.name} onChange={handleChange}
+                    value={formData.name}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
                 {/* Phone */}
                 <div>
@@ -209,11 +236,14 @@ const AddTeacher: React.FC = () => {
                     {TEACHER_LABEL_PHONE}
                   </label>
                   <input
-                    id="phone" name="phone"
+                    id="phone"
+                    name="phone"
                     placeholder={TEACHER_PLACEHOLDER_PHONE}
-                    value={formData.phone} onChange={handleChange}
+                    value={formData.phone}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
               </div>
 
@@ -224,10 +254,14 @@ const AddTeacher: React.FC = () => {
                     {TEACHER_LABEL_DOB}
                   </label>
                   <input
-                    id="dob" name="dob" type="date"
-                    value={formData.dob} onChange={handleChange}
+                    id="dob"
+                    name="dob"
+                    type="date"
+                    value={formData.dob}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
                 {/* Gender */}
                 <div>
@@ -235,8 +269,13 @@ const AddTeacher: React.FC = () => {
                     {TEACHER_LABEL_GENDER}
                   </label>
                   <select
-                    id="gender" name="gender" value={formData.gender} onChange={handleChange} required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" >
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -252,21 +291,31 @@ const AddTeacher: React.FC = () => {
                     {TEACHER_LABEL_ADDRESS}
                   </label>
                   <input
-                    id="address" name="address"
-                    value={formData.address} onChange={handleChange}
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
                 {/* Joining Date */}
                 <div>
-                  <label htmlFor="joiningDate" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="joiningDate"
+                    className="block mb-2 font-semibold"
+                  >
                     {TEACHER_LABEL_JOINING_DATE}
                   </label>
                   <input
-                    id="joiningDate" name="joiningDate" type="date"
-                    value={formData.joiningDate} onChange={handleChange}
+                    id="joiningDate"
+                    name="joiningDate"
+                    type="date"
+                    value={formData.joiningDate}
+                    onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  />
                 </div>
               </div>
 
@@ -275,11 +324,15 @@ const AddTeacher: React.FC = () => {
                   {TEACHER_LABEL_STATUS}
                 </label>
                 <input
-                  id="status" name="status" type="text"
+                  id="status"
+                  name="status"
+                  type="text"
                   placeholder={TEACHER_PLACEHOLDER_STATUS}
-                  value={formData.status} onChange={handleChange}
+                  value={formData.status}
+                  onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white" />
+                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                />
               </div>
 
               <div className="flex justify-end space-x-4">

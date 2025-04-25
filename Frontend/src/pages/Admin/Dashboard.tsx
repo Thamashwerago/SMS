@@ -171,7 +171,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
         <main className="p-6 space-y-8">
           <header className="flex items-center justify-between">
@@ -183,8 +183,19 @@ const Dashboard: React.FC = () => {
               variant="primary"
               size="md"
               leftIcon={
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v6h6M20 20v-6h-6"
+                  />
                 </svg>
               }
             />
@@ -231,7 +242,9 @@ const Dashboard: React.FC = () => {
 
           {/* Upcoming Classes */}
           <section>
-            <h2 className="text-2xl font-semibold mb-4">{STRINGS.UPCOMING_CLASSES}</h2>
+            <h2 className="text-2xl font-semibold mb-4">
+              {STRINGS.UPCOMING_CLASSES}
+            </h2>
             <CommonTable
               columns={timetableColumns}
               data={timetableEntries}
@@ -242,7 +255,9 @@ const Dashboard: React.FC = () => {
 
           {/* Featured Courses */}
           <section>
-            <h2 className="text-2xl font-semibold mb-4">{STRINGS.FEATURED_COURSES}</h2>
+            <h2 className="text-2xl font-semibold mb-4">
+              {STRINGS.FEATURED_COURSES}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredCourses.length > 0 ? (
                 featuredCourses.map((c) => (

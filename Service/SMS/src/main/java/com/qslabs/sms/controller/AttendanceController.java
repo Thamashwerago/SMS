@@ -34,7 +34,7 @@ public class AttendanceController {
      * @param attendanceDTO DTO containing attendance data
      * @return Created attendance record
      */
-    @Secured("ROLE_ADMIN")
+    @Secured({"ROLE_ADMIN","ROLE_TEACHER"})
     @PostMapping
     public ResponseEntity<AttendanceDTO> markAttendance(@Valid @RequestBody AttendanceDTO attendanceDTO) {
         return new ResponseEntity<>(attendanceService.markAttendance(attendanceDTO), HttpStatus.CREATED);
@@ -113,7 +113,7 @@ public class AttendanceController {
      * @param attendanceDTO Updated attendance data
      * @return Updated attendance record
      */
-    @Secured("ROLE_ADMIN")
+    @Secured({"ROLE_ADMIN","ROLE_TEACHER"})
     @PutMapping("/{id}")
     public ResponseEntity<AttendanceDTO> updateAttendance(@PathVariable Long id, @RequestBody AttendanceDTO attendanceDTO) {
         return ResponseEntity.ok(attendanceService.updateAttendance(id, attendanceDTO));
@@ -125,7 +125,7 @@ public class AttendanceController {
      * @param id ID of the record to delete
      * @return No content response
      */
-    @Secured("ROLE_ADMIN")
+    @Secured({"ROLE_ADMIN","ROLE_TEACHER"})
     @DeleteMapping("/{id}")
     public ResponseEntity<AttendanceDTO> deleteAttendance(@PathVariable Long id) {
         attendanceService.unMarkAttendance(id);

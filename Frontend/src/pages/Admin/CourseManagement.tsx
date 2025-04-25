@@ -129,11 +129,11 @@ const CourseManagement: React.FC = () => {
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Escape') closeModal(); };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gray-900 text-white flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-        <main className="p-8 space-y-6">
+        <main className="flex-1 p-6 space-y-8 overflow-hidden">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
@@ -143,21 +143,41 @@ const CourseManagement: React.FC = () => {
               <div className="relative">
                 <Search className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
                 <input
-                  type="text" placeholder={COURSE_SEARCH_PLACEHOLDER}
-                  value={search} onChange={handleSearch}
+                  type="text"
+                  placeholder={COURSE_SEARCH_PLACEHOLDER}
+                  value={search}
+                  onChange={handleSearch}
                   className="pl-10 pr-3 py-2 bg-gray-800 border border-indigo-500 rounded-l-md focus:outline-none focus:ring-indigo-500 text-white"
                 />
               </div>
-              {search && <CommonButton size="sm" variant="secondary" leftIcon={<X />} label="Clear" onClick={clearSearch} />}
-              <CommonButton size="md" variant="primary" leftIcon={<Plus />} label={COURSE_ADD_BUTTON_LABEL} onClick={() => navigate('/admin/add-course')} />
+              {search && (
+                <CommonButton
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<X />}
+                  label="Clear"
+                  onClick={clearSearch}
+                />
+              )}
+              <CommonButton
+                size="md"
+                variant="primary"
+                leftIcon={<Plus />}
+                label={COURSE_ADD_BUTTON_LABEL}
+                onClick={() => navigate("/admin/add-course")}
+              />
             </div>
           </div>
 
           {(error ?? success) && (
-            <div className={`p-3 rounded-md ${error ? 'bg-red-600' : 'bg-green-600'} text-white`}>{error ?? success}</div>
+            <div
+              className={`p-3 rounded-md ${error ? "bg-red-600" : "bg-green-600"} text-white`}
+            >
+              {error ?? success}
+            </div>
           )}
 
-          <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-lg shadow overflow-auto">
+          <div className="w-full overflow-x-auto rounded-lg border border-indigo-500 bg-black bg-opacity-50">
             <CommonTable
               columns={columns}
               data={filtered}
@@ -169,61 +189,110 @@ const CourseManagement: React.FC = () => {
 
           {/* Modal */}
           {modalOpen && (
-            <div className="fixed inset-0 flex z-50" onKeyDown={onKeyDown} tabIndex={-1}>
-              <div className="absolute inset-0 bg-black bg-opacity-70" onClick={closeModal} />
-              <aside className="relative ml-auto w-full max-w-lg h-full bg-gray-800 p-6 shadow-lg transform transition-transform duration-300 ease-out" role="dialog" aria-modal="true">
-                <button onClick={closeModal} aria-label="Close" className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full hover:bg-gray-600 focus:outline-none focus:ring focus:ring-indigo-500">
+            <div
+              className="fixed inset-0 flex z-50"
+              onKeyDown={onKeyDown}
+              tabIndex={-1}
+            >
+              <div
+                className="absolute inset-0 bg-black bg-opacity-70"
+                onClick={closeModal}
+              />
+              <aside
+                className="relative ml-auto w-full max-w-lg h-full bg-gray-800 p-6 shadow-lg transform transition-transform duration-300 ease-out"
+                role="dialog"
+                aria-modal="true"
+              >
+                <button
+                  onClick={closeModal}
+                  aria-label="Close"
+                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full hover:bg-gray-600 focus:outline-none focus:ring focus:ring-indigo-500"
+                >
                   <X className="h-5 w-5 text-gray-300" />
                 </button>
                 <h2 className="text-2xl font-bold mb-4">Edit Course</h2>
-                <form onSubmit={e => { e.preventDefault(); handleSave(); }} className="space-y-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSave();
+                  }}
+                  className="space-y-4"
+                >
                   {/* Code & Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {['code','name'].map(field => (
+                    {["code", "name"].map((field) => (
                       <div key={field}>
-                        <label htmlFor={field} className="block mb-1 text-gray-200 capitalize">{field}</label>
-                        <input 
+                        <label
+                          htmlFor={field}
+                          className="block mb-1 text-gray-200 capitalize"
+                        >
+                          {field}
+                        </label>
+                        <input
                           id={field}
-                          name={field} 
-                          value={form[field as keyof CourseFormData]} 
+                          name={field}
+                          value={form[field as keyof CourseFormData]}
                           onChange={handleFormChange}
-                          className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white" 
-                          required 
+                          className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                          required
                         />
                       </div>
                     ))}
-                    {['credits','duration'].map(field => (
+                    {["credits", "duration"].map((field) => (
                       <div key={field}>
-                        <label htmlFor={field} className="block mb-1 text-gray-200 capitalize">{field}</label>
-                        <input 
+                        <label
+                          htmlFor={field}
+                          className="block mb-1 text-gray-200 capitalize"
+                        >
+                          {field}
+                        </label>
+                        <input
                           id={field}
-                          name={field} 
-                          type="number" 
-                          min="0" 
-                          value={form[field as 'credits' | 'duration']} 
+                          name={field}
+                          type="number"
+                          min="0"
+                          value={form[field as "credits" | "duration"]}
                           onChange={handleFormChange}
-                          className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white" 
-                          required 
+                          className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                          required
                         />
                       </div>
                     ))}
                   </div>
                   {/* Description */}
                   <div>
-                    <label htmlFor="description" className="block mb-1 text-gray-200">Description</label>
-                    <textarea 
+                    <label
+                      htmlFor="description"
+                      className="block mb-1 text-gray-200"
+                    >
+                      Description
+                    </label>
+                    <textarea
                       id="description"
-                      name="description" 
-                      value={form.description} 
+                      name="description"
+                      value={form.description}
                       onChange={handleFormChange}
-                      className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white" 
-                      required 
+                      className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                      required
                     />
                   </div>
                   {/* Actions */}
                   <div className="flex justify-end space-x-3">
-                    <CommonButton size="sm" variant="secondary" label={COURSE_CANCEL_BUTTON_LABEL} onClick={() => { handleCancel(); closeModal(); }} />
-                    <CommonButton size="sm" variant="primary" label={COURSE_SAVE_BUTTON_LABEL} onClick={handleSave} />
+                    <CommonButton
+                      size="sm"
+                      variant="secondary"
+                      label={COURSE_CANCEL_BUTTON_LABEL}
+                      onClick={() => {
+                        handleCancel();
+                        closeModal();
+                      }}
+                    />
+                    <CommonButton
+                      size="sm"
+                      variant="primary"
+                      label={COURSE_SAVE_BUTTON_LABEL}
+                      onClick={handleSave}
+                    />
                   </div>
                 </form>
               </aside>
