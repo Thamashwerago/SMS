@@ -110,6 +110,11 @@ const userService = {
     const response = await axiosInstance.post(`/user/login`, { "username": username, "password": password });
     return response.data;
   },
+
+  updatePassword: async (id: number | string, password: string): Promise<User> => {
+    const response = await axiosInstance.put(`/user/${id}`, { password });
+    return response.data;
+  }
 };
 
 export default userService;
