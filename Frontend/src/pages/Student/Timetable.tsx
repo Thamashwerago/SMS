@@ -1,6 +1,4 @@
-// -----------------------------
 // src/pages/Student/Timetable.tsx
-// -----------------------------
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 // Common UI components
@@ -8,149 +6,135 @@ import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import Card from "../../components/common/Card";
 import CommonTable from "../../components/common/Table";
-import Button from "../../components/common/Button";
+import CommonButton from "../../components/common/Button";
 
 // Services
 import courseService from "../../services/courseService";
-import timetableService, {
-  TimetableEntry,
-} from "../../services/timetableService";
+import timetableService, { TimetableEntry } from "../../services/timetableService";
 
 // Strings
-import { TIMETABLE_STRINGS } from "../../constants/student/timetableConsts";
+import { TIMETABLE_STRINGS as STR } from "../../constants/student/timetableConsts";
 
-/**
- * Student Timetable Component
- * ---------------------------
- * Fetches a student's course assignments and timetable entries,
- * filters by that student, and displays grouped schedule by day.
- * Each fetch is wrapped in its own try–catch for clear error handling.
- */
 const Timetable: React.FC = () => {
+  const [entries, setEntries] = useState<TimetableEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [entries, setEntries] = useState<TimetableEntry[]>([]);
-
-  /**
-   * fetchData
-   * ---------
-   * 1. Reads student ID from sessionStorage
-   * 2. Fetches course assignments for the student
-   * 3. Fetches all timetable entries
-   * 4. Filters entries by assigned courses
-   */
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // 1. Student ID
-    const studentId = sessionStorage.getItem("userId");
-    if (!studentId) {
-      setError(TIMETABLE_STRINGS.ERROR_NO_USER_ID);
-      setLoading(false);
-      return;
+    const sid = Number(sessionStorage.getItem("userId") ?? 0);
+    if (!sid) {
+      setError(STR.ERROR_NO_USER_ID);
+      return setLoading(false);
     }
 
-    // 2. Course Assignments
+    // fetch assignments
     let assigns;
     try {
       assigns = await courseService.getAllCourseAssigns();
-      assigns = assigns.filter((a) => a.userId === Number(studentId));
+      assigns = assigns.filter(a => a.userId === sid);
     } catch (e) {
-      console.error(TIMETABLE_STRINGS.ERROR_FETCH_ASSIGNMENTS, e);
-      setError(TIMETABLE_STRINGS.ERROR_FETCH_ASSIGNMENTS);
-      setLoading(false);
-      return;
+      console.error(e);
+      setError(STR.ERROR_FETCH_ASSIGNMENTS);
+      return setLoading(false);
     }
 
-    const courseIds = assigns.map((a) => a.courseId);
+    const courseIds = assigns.map(a => a.courseId);
 
-    // 3. Timetable Entries
-    let allEntries;
+    // fetch timetable
+    let all;
     try {
-      allEntries = await timetableService.getAll();
+      all = await timetableService.getAll();
     } catch (e) {
-      console.error(TIMETABLE_STRINGS.ERROR_FETCH_TIMETABLE, e);
-      setError(TIMETABLE_STRINGS.ERROR_FETCH_TIMETABLE);
-      setLoading(false);
-      return;
+      console.error(e);
+      setError(STR.ERROR_FETCH_TIMETABLE);
+      return setLoading(false);
     }
 
-    // 4. Filter by student's courses
-    const filtered = allEntries.filter((e) => courseIds.includes(e.courseId));
-    setEntries(filtered);
+    setEntries(all.filter(e => courseIds.includes(e.courseId)));
     setLoading(false);
   }, []);
 
-  // Initial load
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Group by day
+  // group by date
   const byDay = useMemo(() => {
-    return entries.reduce<Record<string, TimetableEntry[]>>((acc, entry) => {
-      acc[entry.date] = acc[entry.date] || [];
-      acc[entry.date].push(entry);
+    return entries.reduce<Record<string, TimetableEntry[]>>((acc, e) => {
+      if (!acc[e.date]) {
+        acc[e.date] = [];
+      }
+      acc[e.date].push(e);
       return acc;
     }, {});
   }, [entries]);
 
-  // Ordered list of dates
-  const orderedDates = Object.keys(byDay).sort((a, b) => a.localeCompare(b));
-
-  // removed unused columns definition
+  const dates = Object.keys(byDay).sort((a, b) => a.localeCompare(b));
 
   return (
-    <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col overflow-x-hidden">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 overflow-x-auto">
-          {/* Heading & Refresh */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-              {TIMETABLE_STRINGS.PAGE_HEADING}
+
+        <main className="p-6 space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+              {STR.PAGE_HEADING}
             </h1>
-            <Button
-              label={TIMETABLE_STRINGS.BTN_REFRESH}
+            <CommonButton
+              size="md"
+              variant="primary"
+              label={STR.BTN_REFRESH}
               onClick={fetchData}
               isLoading={loading}
-              variant="primary"
             />
           </div>
 
-          {/* Error or No Data */}
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          {!loading && entries.length === 0 && !error && (
-            <p className="text-white">{TIMETABLE_STRINGS.NO_DATA}</p>
+          {/* Errors / No data */}
+          {error && (
+            <div className="p-4 bg-red-600 rounded text-white">
+              {error}
+            </div>
+          )}
+          {!loading && !error && entries.length === 0 && (
+            <p className="text-gray-400">{STR.NO_DATA}</p>
           )}
 
-          {/* Grouped Timetable */}
-          {orderedDates.map((date) => (
-            <Card key={date} title={date} value="" className="mb-6">
-              <CommonTable
+          {/* Timetable grouped by day */}
+          {dates.map(date => (
+            <Card
+              key={date}
+              title={date}
+              className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-6"
+              value=""
+            >
+              <CommonTable<TimetableEntry>
                 columns={[
                   {
-                    header: TIMETABLE_STRINGS.COL_COURSE,
-                    accessor: (entry) => entry.courseId.toString(),
+                    header: STR.COL_COURSE,
+                    accessor: e => e.courseId.toString(),
                   },
                   {
-                    header: TIMETABLE_STRINGS.COL_TIME,
-                    accessor: (entry) =>
-                      `${entry.startTime} - ${entry.endTime}`,
+                    header: STR.COL_TIME,
+                    accessor: e => `${e.startTime} - ${e.endTime}`,
                   },
                   {
-                    header: TIMETABLE_STRINGS.COL_TEACHER,
-                    accessor: (entry) => entry.teacherId.toString(),
+                    header: STR.COL_TEACHER,
+                    accessor: e => e.teacherId.toString(),
                   },
                   {
-                    header: TIMETABLE_STRINGS.COL_CLASSROOM,
-                    accessor: (entry) => entry.classroom,
+                    header: STR.COL_CLASSROOM,
+                    accessor: e => e.classroom,
                   },
                 ]}
                 data={byDay[date]}
+                loading={loading}
+                noDataMessage={STR.NO_DATA}
               />
             </Card>
           ))}
@@ -160,4 +144,4 @@ const Timetable: React.FC = () => {
   );
 };
 
-export default Timetable;
+export default React.memo(Timetable);
