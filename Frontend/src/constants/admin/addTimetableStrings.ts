@@ -22,7 +22,7 @@ export const PLACEHOLDER_CLASSROOM = "Enter classroom";
 
 // Button labels
 export const BUTTON_SAVE = "Save Entry";
-export const BUTTON_CANCEL = "Cancel";
+export const BUTTON_CANCEL = "Clear";
 
 // Success and error messages
 export const SUCCESS_MESSAGE_ADD = "Timetable entry added successfully.";

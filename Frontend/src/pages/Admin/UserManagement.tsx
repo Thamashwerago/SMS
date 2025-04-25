@@ -1,23 +1,26 @@
 // src/pages/Admin/UserManagement.tsx
 import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Plus, Search, X, Edit3 } from "lucide-react";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
 import CommonButton from "../../components/common/Button";
 import userService, { User } from "../../services/userService";
-import { Plus, Search, X } from "lucide-react";
 import {
   USER_MANAGEMENT_HEADING,
   SEARCH_PLACEHOLDER,
   ADD_ADMIN_BUTTON_LABEL,
+  USER_EDIT_BUTTON_LABEL,
+  USER_SAVE_BUTTON_LABEL,
+  USER_CANCEL_BUTTON_LABEL,
+  USER_CLOSE_BUTTON_LABEL,
 } from "../../constants/admin/userManagementStrings";
 import {
   FETCH_USERS_EXCEPTION,
   UPDATE_USER_EXCEPTION,
 } from "../../constants/exceptionMessages";
 
-// Editable fields for user update
 interface EditableUserData {
   username: string;
   email: string;
@@ -28,6 +31,8 @@ const UserManagement: React.FC = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<EditableUserData>({
@@ -35,37 +40,35 @@ const UserManagement: React.FC = () => {
     email: "",
     password: "",
   });
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  // Fetch users on mount
+  const [error, setError] = useState<string | null>(null);
+
+  // load users
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const resp = await userService.getAll();
-        setUsers(Array.isArray(resp) ? resp : []);
-      } catch (err) {
-        console.error(err);
+        const data = await userService.getAll();
+        setUsers(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error(e);
         setError(FETCH_USERS_EXCEPTION);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     })();
   }, []);
 
-  // Filter users by search query
+  // search/filter
   const filteredUsers = useMemo(
     () =>
       users.filter((u) =>
-        [u.username, u.email, u.role].some((field) =>
-          field.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+        [u.username, u.email, u.role]
+          .some((f) => f.toLowerCase().includes(searchQuery.toLowerCase()))
       ),
     [users, searchQuery]
   );
 
-  // Table columns
+  // table cols
   const columns: Column<User>[] = useMemo(
     () => [
       { header: "ID", accessor: "id" },
@@ -76,7 +79,6 @@ const UserManagement: React.FC = () => {
     []
   );
 
-  // Handlers
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(e.target.value);
   const clearSearch = () => setSearchQuery("");
@@ -85,13 +87,18 @@ const UserManagement: React.FC = () => {
   const handleRowClick = (user: User) => {
     setError(null);
     setSelectedUser(user);
-    setEditData({ username: user.username, email: user.email, password: "" });
+    setEditData({
+      username: user.username,
+      email: user.email,
+      password: "",
+    });
     setIsEditing(false);
   };
 
   const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
   };
 
   const saveUser = async () => {
@@ -99,11 +106,13 @@ const UserManagement: React.FC = () => {
     setError(null);
     try {
       const updated = await userService.update(selectedUser.id, editData);
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      setUsers((prev) =>
+        prev.map((u) => (u.id === updated.id ? updated : u))
+      );
       setSelectedUser(updated);
       setIsEditing(false);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       setError(UPDATE_USER_EXCEPTION);
     }
   };
@@ -120,7 +129,7 @@ const UserManagement: React.FC = () => {
     setError(null);
   };
 
-  const closeModal = () => setSelectedUser(null);
+  const handleClose = () => setSelectedUser(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
@@ -130,34 +139,34 @@ const UserManagement: React.FC = () => {
         <main className="p-8 space-y-6 overflow-x-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+            <h1 className="text-3xl font-bold">
               {USER_MANAGEMENT_HEADING}
             </h1>
             <div className="flex items-center mt-4 sm:mt-0 space-x-2">
               <div className="relative">
-                <Search className="absolute inset-y-0 left-0 pl-3 h-10 w-7 text-gray-400" />
+                <Search className="absolute inset-y-0 left-0 pl-3 h-11 w-7 text-gray-400" />
                 <input
                   type="text"
                   placeholder={SEARCH_PLACEHOLDER}
                   value={searchQuery}
                   onChange={handleSearch}
-                  className="pl-10 pr-3 py-2 bg-gray-800 text-white placeholder-gray-400 border border-indigo-500 rounded-l-md focus:outline-none focus:ring focus:ring-indigo-500"
+                  className="pl-10 pr-3 py-2 bg-gray-800 border border-indigo-500 rounded-l-md focus:outline-none focus:ring focus:ring-indigo-500 text-white"
                 />
               </div>
               {searchQuery && (
                 <CommonButton
                   size="sm"
                   variant="secondary"
-                  label=""
                   leftIcon={<X />}
+                  label=""
                   onClick={clearSearch}
                 />
               )}
               <CommonButton
                 size="md"
                 variant="primary"
-                label={ADD_ADMIN_BUTTON_LABEL}
                 leftIcon={<Plus />}
+                label={ADD_ADMIN_BUTTON_LABEL}
                 onClick={goAddAdmin}
               />
             </div>
@@ -165,11 +174,13 @@ const UserManagement: React.FC = () => {
 
           {/* Error */}
           {error && (
-            <div className="p-4 bg-red-600 bg-opacity-50 rounded">{error}</div>
+            <div className="p-4 rounded text-white bg-red-600 bg-opacity-50">
+              {error}
+            </div>
           )}
 
-          {/* User Table */}
-          <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-lg shadow overflow-hidden">
+          {/* Table */}
+          <div className="bg-gray-800 rounded-lg shadow overflow-auto">
             <CommonTable
               columns={columns}
               data={filteredUsers}
@@ -180,29 +191,27 @@ const UserManagement: React.FC = () => {
             />
           </div>
 
-          {/* Detail Slide-over */}
+          {/* Slide-over */}
           {selectedUser && (
-            <div className="fixed inset-0 z-50 flex">
-              {/* Overlay */}
+            <div className="fixed inset-0 flex z-50">
+              {/* backdrop */}
               <button
-                className="absolute inset-0 bg-black bg-opacity-70 border-0 w-full cursor-default"
-                onClick={closeModal}
+                className="absolute inset-0 bg-black bg-opacity-70"
+                onClick={handleClose}
                 aria-label="Close user details"
               />
 
-              {/* Slide-over */}
-              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6">
-                {/* Close icon */}
+              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl transform transition-transform duration-300 ease-out">
+                <h2 className="text-2xl font-semibold mb-4">
+                  User Details
+                </h2>
                 <button
-                  onClick={closeModal}
+                  onClick={handleClose}
                   aria-label="Close"
-                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded hover:bg-gray-600 focus:outline-none focus:ring focus:ring-indigo-500"
+                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full hover:bg-gray-600 focus:outline-none focus:ring focus:ring-indigo-500"
                 >
                   <X className="h-5 w-5 text-gray-300" />
                 </button>
-
-                <h2 className="text-2xl font-bold mb-4">User Details</h2>
-                {error && <p className="text-red-500 mb-2">{error}</p>}
 
                 <div className="space-y-4">
                   {[
@@ -213,18 +222,21 @@ const UserManagement: React.FC = () => {
                     <div key={field.name}>
                       <label
                         htmlFor={field.name}
-                        className="block text-sm font-semibold mb-1 text-gray-200"
+                        className="block text-sm font-medium text-gray-200 mb-1"
                       >
                         {field.label}
                       </label>
                       {isEditing ? (
                         <input
                           id={field.name}
-                          type={field.name === "password" ? "password" : "text"}
                           name={field.name}
-                          value={editData[field.name as keyof EditableUserData]}
+                          type={field.name === "password" ? "password" : "text"}
+                          value={
+                            editData[
+                              field.name as keyof EditableUserData
+                            ]
+                          }
                           onChange={handleEditChange}
-                          placeholder={`Enter ${field.label.toLowerCase()}`}
                           className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
                         />
                       ) : (
@@ -240,9 +252,9 @@ const UserManagement: React.FC = () => {
                   ))}
 
                   <div>
-                    <div className="block text-sm font-semibold mb-1 text-gray-200">
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
                       Role
-                    </div>
+                    </label>
                     <p className="text-gray-300">{selectedUser.role}</p>
                   </div>
                 </div>
@@ -253,13 +265,13 @@ const UserManagement: React.FC = () => {
                       <CommonButton
                         size="sm"
                         variant="primary"
-                        label="Save"
+                        label={USER_SAVE_BUTTON_LABEL}
                         onClick={saveUser}
                       />
                       <CommonButton
                         size="sm"
                         variant="secondary"
-                        label="Cancel"
+                        label={USER_CANCEL_BUTTON_LABEL}
                         onClick={cancelEdit}
                       />
                     </>
@@ -267,10 +279,17 @@ const UserManagement: React.FC = () => {
                     <CommonButton
                       size="sm"
                       variant="primary"
-                      label="Edit"
+                      leftIcon={<Edit3 />}
+                      label={USER_EDIT_BUTTON_LABEL}
                       onClick={() => setIsEditing(true)}
                     />
                   )}
+                  <CommonButton
+                    size="sm"
+                    variant="secondary"
+                    label={USER_CLOSE_BUTTON_LABEL}
+                    onClick={handleClose}
+                  />
                 </div>
               </aside>
             </div>

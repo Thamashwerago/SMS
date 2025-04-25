@@ -15,7 +15,7 @@ const useRestoreAuth = () => {
           return; // Skip rehydrated dispatch, already done inside setCredentials
         }
       } catch (e) {
-        console.warn("Invalid auth data in storage.");
+        console.warn("Invalid auth data in storage:", e);
       }
     }
 
