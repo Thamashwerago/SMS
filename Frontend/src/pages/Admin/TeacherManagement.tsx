@@ -234,69 +234,6 @@ const TeacherManagement: React.FC = () => {
     []
   );
 
-  // Open modal
-  const openModal = (teacher: Teacher) => {
-    setSelectedTeacher(teacher);
-    setEditData(teacher);
-    setIsEditing(false);
-    setError(null);
-    setSuccess(null);
-  };
-
-  // Edit data change
-  const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setEditData(prev => ({ ...prev, [name]: value }));
-    setError(null);
-    setSuccess(null);
-  };
-
-  const handleEditClick = () => setIsEditing(true);
-
-  // Save update
-  const handleSave = async () => {
-    if (!selectedTeacher) return;
-    setError(null);
-    try {
-      await teacherService.update(selectedTeacher.id, editData);
-      setSuccess("Teacher updated successfully.");
-      const updated = await teacherService.getAll();
-      setTeachers(updated.map(t => ({ ...t, dob: new Date(t.dob).toISOString().split("T")[0], joiningDate: new Date(t.joiningDate).toISOString().split("T")[0] })));
-      setSelectedTeacher(null);
-    } catch (e) {
-      console.error(e);
-      setError(UPDATE_TEACHER_EXCEPTION);
-    }
-  };
-
-  // Delete
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure?")) return;
-    setError(null);
-    try {
-      await teacherService.delete(id);
-      setSuccess("Teacher deleted successfully.");
-      setTeachers(prev => prev.filter(t => t.id !== id));
-    } catch (e) {
-      console.error(e);
-      setError(DELETE_TEACHER_EXCEPTION);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    if (selectedTeacher) {
-      setEditData({ name: selectedTeacher.name, phone: selectedTeacher.phone, address: selectedTeacher.address });
-    }
-    setIsEditing(false);
-  };
-
-  const handleClose = () => setSelectedTeacher(null);
-
-  // Keydown handler for modal (Escape to close)
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') handleClose();
-  };
-
   return (
     <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
