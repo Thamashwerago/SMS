@@ -1,6 +1,7 @@
+// src/pages/Admin/AddTeacher.tsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { ArrowLeft, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonButton from "../../components/common/Button";
@@ -45,7 +46,7 @@ const initialForm: TeacherFormData = {
   address: "",
   joiningDate: "",
   status: "",
-  role: "Teacher",
+  role: "TEACHER",
 };
 
 const AddTeacher: React.FC = () => {
@@ -85,14 +86,16 @@ const AddTeacher: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const CreateUser = await userService.create({
+      // create user account
+      const createdUser = await userService.create({
         username: formData.username,
         email: formData.email,
         password: formData.password,
         role: "TEACHER",
       });
+      // create teacher profile
       await teacherService.create({
-        userId: CreateUser.id,
+        userId: createdUser.id,
         name: formData.name,
         phone: formData.phone,
         dob: formData.dob,
@@ -104,237 +107,227 @@ const AddTeacher: React.FC = () => {
       });
       setSuccess(TEACHER_SUCCESS_MESSAGE);
       setFormData(initialForm);
-      setTimeout(() => navigate('/admin/teacher-management'), TEACHER_NAVIGATION_DELAY_MS);
+      setTimeout(
+        () => navigate("/admin/teacher-management"),
+        TEACHER_NAVIGATION_DELAY_MS
+      );
     } catch (err) {
       console.error(err);
       setError(TEACHER_ERROR_MESSAGE);
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
       <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 p-8 relative overflow-x-auto">
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            aria-label="Go back"
-            className="absolute top-8 right-8 p-2 bg-gray-800 bg-opacity-50 hover:bg-opacity-75 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          >
-            <ArrowLeft size={24} />
-          </button>
+        <main className="p-6 space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{TEACHER_HEADING}</h1>
+            <CommonButton
+              size="md"
+              variant="secondary"
+              leftIcon={<ArrowLeft />}
+              label="Back"
+              onClick={handleBack}
+            />
+          </div>
 
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-8">
-            {TEACHER_HEADING}
-          </h1>
+          {/* Alerts */}
+          {error && (
+            <div className="p-4 bg-red-600 rounded text-white">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-4 bg-green-600 rounded text-white">
+              {success}
+            </div>
+          )}
 
-          <div className="mx-auto w-full max-w-xl bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8">
+          {/* Form Card */}
+          <div className="bg-gray-800 rounded-lg shadow p-6 max-w-xl mx-auto">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && <p className="text-red-500">{error}</p>}
-              {success && <p className="text-green-500">{success}</p>}
-
+              {/* Username & Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Username */}
                 <div>
-                  <label
-                    htmlFor="username"
-                    className="block mb-2 font-semibold"
-                  >
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_USERNAME}
                   </label>
                   <input
-                    id="username"
                     name="username"
                     placeholder={TEACHER_PLACEHOLDER_USERNAME}
                     value={formData.username}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
-                {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_EMAIL}
                   </label>
                   <input
-                    id="email"
                     name="email"
                     type="email"
                     placeholder={TEACHER_PLACEHOLDER_EMAIL}
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
+              {/* Password */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Password */}
                 <div>
-                  <label
-                    htmlFor="password"
-                    className="block mb-2 font-semibold"
-                  >
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_PASSWORD}
                   </label>
                   <input
-                    id="password"
                     name="password"
                     type="password"
                     placeholder={TEACHER_PLACEHOLDER_PASSWORD}
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
-                {/* Confirm Password */}
                 <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block mb-2 font-semibold"
-                  >
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_CONFIRM_PASSWORD}
                   </label>
                   <input
-                    id="confirmPassword"
                     name="confirmPassword"
                     type="password"
                     placeholder={TEACHER_PLACEHOLDER_CONFIRM_PASSWORD}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
+              {/* Personal Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_NAME}
                   </label>
                   <input
-                    id="name"
                     name="name"
                     placeholder={TEACHER_PLACEHOLDER_NAME}
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
-                {/* Phone */}
                 <div>
-                  <label htmlFor="phone" className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_PHONE}
                   </label>
                   <input
-                    id="phone"
                     name="phone"
                     placeholder={TEACHER_PLACEHOLDER_PHONE}
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
+              {/* DOB & Gender */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* DOB */}
                 <div>
-                  <label htmlFor="dob" className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_DOB}
                   </label>
                   <input
-                    id="dob"
                     name="dob"
                     type="date"
                     value={formData.dob}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    placeholder="YYYY-MM-DD"
+                    title={TEACHER_LABEL_DOB}
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
-                {/* Gender */}
                 <div>
-                  <label htmlFor="gender" className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_GENDER}
                   </label>
                   <select
-                    id="gender"
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    title={TEACHER_LABEL_GENDER}
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   >
                     <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
                   </select>
                 </div>
               </div>
 
+              {/* Address & Joining Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Address */}
                 <div>
-                  <label htmlFor="address" className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {TEACHER_LABEL_ADDRESS}
                   </label>
                   <input
-                    id="address"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    placeholder="Enter address"
+                    title={TEACHER_LABEL_ADDRESS}
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
-                {/* Joining Date */}
                 <div>
-                  <label
-                    htmlFor="joiningDate"
-                    className="block mb-2 font-semibold"
-                  >
-                    {TEACHER_LABEL_JOINING_DATE}
-                  </label>
                   <input
-                    id="joiningDate"
                     name="joiningDate"
                     type="date"
                     value={formData.joiningDate}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    placeholder="YYYY-MM-DD"
+                    title={TEACHER_LABEL_JOINING_DATE}
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
+              {/* Status */}
               <div>
-                <label htmlFor="status" className="block mb-2 font-semibold">
+                <label className="block mb-1 font-semibold">
                   {TEACHER_LABEL_STATUS}
                 </label>
                 <input
-                  id="status"
                   name="status"
-                  type="text"
                   placeholder={TEACHER_PLACEHOLDER_STATUS}
                   value={formData.status}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
+              {/* Actions */}
               <div className="flex justify-end space-x-4">
                 <CommonButton
                   type="button"

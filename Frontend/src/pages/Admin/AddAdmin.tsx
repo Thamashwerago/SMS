@@ -1,6 +1,7 @@
+// src/pages/Admin/AddAdmin.tsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { ArrowLeft, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonButton from "../../components/common/Button";
@@ -22,11 +23,6 @@ import {
   ADMIN_NAVIGATE_DELAY_MS,
 } from "../../constants/admin/adminStrings";
 
-/**
- * AddAdmin Component
- * ------------------
- * Renders a form for creating a new admin user with clear and back controls.
- */
 const AddAdmin: React.FC = () => {
   const navigate = useNavigate();
 
@@ -45,6 +41,8 @@ const AddAdmin: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
+    setSuccess(null);
   };
 
   const handleClear = () => {
@@ -68,17 +66,20 @@ const AddAdmin: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const newAdmin: Omit<AddUser, 'id'> = {
+      const newAdmin: Omit<AddUser, "id"> = {
         username: formData.name,
         email: formData.email,
         password: formData.password,
-        role: 'ADMIN'
+        role: "ADMIN",
       };
       await userService.create(newAdmin);
 
       setSuccess(ADMIN_SUCCESS_MESSAGE);
       setFormData(initialData);
-      setTimeout(() => navigate("/admin/user-management"), ADMIN_NAVIGATE_DELAY_MS);
+      setTimeout(
+        () => navigate("/admin/user-management"),
+        ADMIN_NAVIGATE_DELAY_MS
+      );
     } catch (err) {
       console.error(err);
       setError(ADMIN_ERROR_MESSAGE);
@@ -87,36 +88,43 @@ const AddAdmin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
       <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 p-8 relative overflow-x-auto">
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            aria-label="Go back"
-            className="absolute top-8 right-8 p-2 bg-gray-800 bg-opacity-50 hover:bg-opacity-75 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          >
-            <ArrowLeft size={24} />
-          </button>
+        <main className="p-6 space-y-8">
+          {/* Header */}
+          <header className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{ADMIN_HEADING}</h1>
+            <CommonButton
+              size="md"
+              variant="secondary"
+              leftIcon={<ArrowLeft />}
+              label="Back"
+              onClick={handleBack}
+            />
+          </header>
 
-          {/* Heading */}
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-8">
-            {ADMIN_HEADING}
-          </h1>
+          {/* Messages */}
+          {error && (
+            <div className="p-4 bg-red-600 rounded text-white">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-4 bg-green-600 rounded text-white">
+              {success}
+            </div>
+          )}
 
-          {/* Form Card */}
-          <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8 max-w-xl mx-auto">
+          {/* Form */}
+          <div className="bg-gray-800 rounded-lg shadow p-6 max-w-xl mx-auto">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && <p className="text-red-500">{error}</p>}
-              {success && <p className="text-green-500">{success}</p>}
-
               {/* Name */}
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-lg font-semibold mb-2"
+                  className="block mb-1 font-semibold"
                 >
                   {ADMIN_LABEL_NAME}
                 </label>
@@ -128,7 +136,7 @@ const AddAdmin: React.FC = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
@@ -136,7 +144,7 @@ const AddAdmin: React.FC = () => {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-lg font-semibold mb-2"
+                  className="block mb-1 font-semibold"
                 >
                   {ADMIN_LABEL_EMAIL}
                 </label>
@@ -148,7 +156,7 @@ const AddAdmin: React.FC = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
@@ -156,7 +164,7 @@ const AddAdmin: React.FC = () => {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-lg font-semibold mb-2"
+                  className="block mb-1 font-semibold"
                 >
                   {ADMIN_LABEL_PASSWORD}
                 </label>
@@ -168,7 +176,7 @@ const AddAdmin: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
@@ -176,7 +184,7 @@ const AddAdmin: React.FC = () => {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-lg font-semibold mb-2"
+                  className="block mb-1 font-semibold"
                 >
                   {ADMIN_LABEL_CONFIRM_PASSWORD}
                 </label>
@@ -188,7 +196,7 @@ const AddAdmin: React.FC = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring focus:ring-indigo-500 text-white"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
@@ -196,9 +204,9 @@ const AddAdmin: React.FC = () => {
               <div className="flex justify-end space-x-4">
                 <CommonButton
                   type="button"
-                  label="Clear"
                   variant="secondary"
                   size="md"
+                  label="Clear"
                   onClick={handleClear}
                   disabled={submitting}
                 >
@@ -206,9 +214,9 @@ const AddAdmin: React.FC = () => {
                 </CommonButton>
                 <CommonButton
                   type="submit"
-                  label={ADMIN_PAGE_TITLE}
                   variant="primary"
                   size="md"
+                  label={ADMIN_PAGE_TITLE}
                   isLoading={submitting}
                 />
               </div>

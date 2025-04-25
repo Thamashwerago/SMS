@@ -29,9 +29,11 @@ interface EditableUserData {
 
 const UserManagement: React.FC = () => {
   const navigate = useNavigate();
+
   const [users, setUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -41,9 +43,7 @@ const UserManagement: React.FC = () => {
     password: "",
   });
 
-  const [error, setError] = useState<string | null>(null);
-
-  // load users
+  // Load users
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -53,12 +53,13 @@ const UserManagement: React.FC = () => {
       } catch (e) {
         console.error(e);
         setError(FETCH_USERS_EXCEPTION);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 
-  // search/filter
+  // Filtered list
   const filteredUsers = useMemo(
     () =>
       users.filter((u) =>
@@ -66,17 +67,6 @@ const UserManagement: React.FC = () => {
           .some((f) => f.toLowerCase().includes(searchQuery.toLowerCase()))
       ),
     [users, searchQuery]
-  );
-
-  // table cols
-  const columns: Column<User>[] = useMemo(
-    () => [
-      { header: "ID", accessor: "id" },
-      { header: "Username", accessor: "username" },
-      { header: "Email", accessor: "email" },
-      { header: "Role", accessor: "role" },
-    ],
-    []
   );
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
@@ -131,17 +121,39 @@ const UserManagement: React.FC = () => {
 
   const handleClose = () => setSelectedUser(null);
 
+  // Table columns
+  const columns: Column<User>[] = useMemo(
+    () => [
+      { header: "ID", accessor: "id" },
+      { header: "Username", accessor: "username" },
+      { header: "Email", accessor: "email" },
+      { header: "Role", accessor: "role" },
+      {
+        header: "Actions",
+        accessor: (u) => (
+          <CommonButton
+            size="sm"
+            variant="primary"
+            leftIcon={<Edit3 />}
+            label={USER_EDIT_BUTTON_LABEL}
+            onClick={() => handleRowClick(u)}
+          />
+        ),
+      },
+    ],
+    []
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
       <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-        <main className="p-8 space-y-6 overflow-x-auto">
+
+        <main className="p-6 space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h1 className="text-3xl font-bold">
-              {USER_MANAGEMENT_HEADING}
-            </h1>
+            <h1 className="text-3xl font-bold">{USER_MANAGEMENT_HEADING}</h1>
             <div className="flex items-center mt-4 sm:mt-0 space-x-2">
               <div className="relative">
                 <Search className="absolute inset-y-0 left-0 pl-3 h-11 w-7 text-gray-400" />
@@ -157,8 +169,8 @@ const UserManagement: React.FC = () => {
                 <CommonButton
                   size="sm"
                   variant="secondary"
-                  leftIcon={<X />}
-                  label=""
+                  icon={<X />}
+                  label="Clear search"
                   onClick={clearSearch}
                 />
               )}
@@ -174,12 +186,12 @@ const UserManagement: React.FC = () => {
 
           {/* Error */}
           {error && (
-            <div className="p-4 rounded text-white bg-red-600 bg-opacity-50">
+            <div className="p-4 bg-red-600 rounded text-white">
               {error}
             </div>
           )}
 
-          {/* Table */}
+          {/* User Table */}
           <div className="bg-gray-800 rounded-lg shadow overflow-auto">
             <CommonTable
               columns={columns}
@@ -187,11 +199,10 @@ const UserManagement: React.FC = () => {
               loading={loading}
               initialSortColumn="username"
               initialSortDirection="asc"
-              onRowClick={handleRowClick}
             />
           </div>
 
-          {/* Slide-over */}
+          {/* Slide-over detail / edit */}
           {selectedUser && (
             <div className="fixed inset-0 flex z-50">
               {/* backdrop */}
@@ -201,10 +212,9 @@ const UserManagement: React.FC = () => {
                 aria-label="Close user details"
               />
 
-              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl transform transition-transform duration-300 ease-out">
-                <h2 className="text-2xl font-semibold mb-4">
-                  User Details
-                </h2>
+              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl">
+                {/* Title & Close */}
+                <h2 className="text-2xl font-semibold mb-4">User Details</h2>
                 <button
                   onClick={handleClose}
                   aria-label="Close"
@@ -213,10 +223,11 @@ const UserManagement: React.FC = () => {
                   <X className="h-5 w-5 text-gray-300" />
                 </button>
 
+                {/* Fields */}
                 <div className="space-y-4">
                   {[
                     { label: "Username", name: "username" },
-                    { label: "Email", name: "email" },
+                    { label: "Email",    name: "email" },
                     { label: "Password", name: "password" },
                   ].map((field) => (
                     <div key={field.name}>
@@ -232,9 +243,7 @@ const UserManagement: React.FC = () => {
                           name={field.name}
                           type={field.name === "password" ? "password" : "text"}
                           value={
-                            editData[
-                              field.name as keyof EditableUserData
-                            ]
+                            editData[field.name as keyof EditableUserData]
                           }
                           onChange={handleEditChange}
                           className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
@@ -243,22 +252,25 @@ const UserManagement: React.FC = () => {
                         <p className="text-gray-300">
                           {field.name === "password"
                             ? "••••••"
-                            : selectedUser[
-                                field.name as keyof EditableUserData
-                              ]}
+                            : selectedUser[field.name as keyof User]}
                         </p>
                       )}
                     </div>
                   ))}
 
+                  {/* Role (read-only) */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                    <label 
+                      htmlFor="user-role" 
+                      className="block text-sm font-medium text-gray-200 mb-1"
+                    >
                       Role
                     </label>
-                    <p className="text-gray-300">{selectedUser.role}</p>
+                    <p id="user-role" className="text-gray-300">{selectedUser.role}</p>
                   </div>
                 </div>
 
+                {/* Actions */}
                 <div className="mt-6 flex justify-end space-x-2">
                   {isEditing ? (
                     <>
