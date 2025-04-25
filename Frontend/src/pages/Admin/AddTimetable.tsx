@@ -1,7 +1,7 @@
 // src/pages/Admin/AddTimetable.tsx
 import React, { useState, ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import { ArrowLeft, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonButton from "../../components/common/Button";
@@ -30,7 +30,7 @@ const initialForm: Omit<TimetableEntry, "id"> = {
   endTime: "",
   courseId: 0,
   classroom: "",
-  teacherId: 0, // Added teacherId as required by timetableService.create
+  teacherId: 0,
 };
 
 const AddTimetable: React.FC = () => {
@@ -45,12 +45,9 @@ const AddTimetable: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]:
-        name === "courseId"
-          ? Number(value)
-          : value,
+      [name]: name === "courseId" ? Number(value) : value,
     }));
     setError(null);
     setSuccess(null);
@@ -73,41 +70,50 @@ const AddTimetable: React.FC = () => {
       setSuccess(SUCCESS_MESSAGE_ADD);
       handleClear();
       setTimeout(() => navigate("/admin/timetable"), 1500);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError(ERROR_MESSAGE_ADD);
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col overflow-x-hidden">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 relative overflow-x-auto">
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            aria-label="Go back"
-            className="absolute top-8 right-8 p-2 bg-gray-800 bg-opacity-50 hover:bg-opacity-75 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          >
-            <ArrowLeft size={24} />
-          </button>
 
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-8">
-            {ADD_TIMETABLE_HEADING}
-          </h1>
+        <main className="p-6 space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{ADD_TIMETABLE_HEADING}</h1>
+            <CommonButton
+              size="md"
+              variant="secondary"
+              leftIcon={<ArrowLeft />}
+              label="Back"
+              onClick={handleBack}
+            />
+          </div>
 
-          <div className="mx-auto w-full max-w-xl bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8">
-            {error && <p className="mb-4 text-red-500">{error}</p>}
-            {success && <p className="mb-4 text-green-500">{success}</p>}
+          {/* Alerts */}
+          {error && (
+            <div className="p-4 bg-red-600 rounded text-white">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-4 bg-green-600 rounded text-white">
+              {success}
+            </div>
+          )}
 
+          {/* Form Card */}
+          <section className="bg-gray-800 rounded-lg shadow p-6 max-w-xl mx-auto">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Date */}
               <div>
-                <label htmlFor="date" className="block mb-2 font-semibold">
+                <label htmlFor="date" className="block mb-1 font-semibold">
                   {LABEL_DATE}
                 </label>
                 <input
@@ -118,17 +124,14 @@ const AddTimetable: React.FC = () => {
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring-indigo-400"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
-              {/* Start / End Time */}
+              {/* Times */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label
-                    htmlFor="startTime"
-                    className="block mb-2 font-semibold"
-                  >
+                  <label htmlFor="startTime" className="block mb-1 font-semibold">
                     {LABEL_START_TIME}
                   </label>
                   <input
@@ -139,11 +142,11 @@ const AddTimetable: React.FC = () => {
                     value={formData.startTime}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring-indigo-400"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="endTime" className="block mb-2 font-semibold">
+                  <label htmlFor="endTime" className="block mb-1 font-semibold">
                     {LABEL_END_TIME}
                   </label>
                   <input
@@ -154,14 +157,14 @@ const AddTimetable: React.FC = () => {
                     value={formData.endTime}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring-indigo-400"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Course ID */}
               <div>
-                <label htmlFor="courseId" className="block mb-2 font-semibold">
+                <label htmlFor="courseId" className="block mb-1 font-semibold">
                   {LABEL_COURSE_ID}
                 </label>
                 <input
@@ -172,13 +175,13 @@ const AddTimetable: React.FC = () => {
                   value={formData.courseId || ""}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring-indigo-400"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
               {/* Classroom */}
               <div>
-                <label htmlFor="classroom" className="block mb-2 font-semibold">
+                <label htmlFor="classroom" className="block mb-1 font-semibold">
                   {LABEL_CLASSROOM}
                 </label>
                 <input
@@ -189,7 +192,7 @@ const AddTimetable: React.FC = () => {
                   value={formData.classroom}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:outline-none focus:ring-indigo-400"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
@@ -213,7 +216,7 @@ const AddTimetable: React.FC = () => {
                 />
               </div>
             </form>
-          </div>
+          </section>
         </main>
       </div>
     </div>
