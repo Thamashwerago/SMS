@@ -84,9 +84,9 @@ const AddTimetable: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-x-hidden">
         <Navbar />
-        <main className="p-8 relative">
+        <main className="p-8 relative overflow-x-auto">
           {/* Back Button */}
           <button
             onClick={handleBack}
@@ -125,7 +125,10 @@ const AddTimetable: React.FC = () => {
               {/* Start / End Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="startTime" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="startTime"
+                    className="block mb-2 font-semibold"
+                  >
                     {LABEL_START_TIME}
                   </label>
                   <input
