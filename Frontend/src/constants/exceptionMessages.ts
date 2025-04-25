@@ -32,3 +32,4 @@ export const DELETE_TIMETABLE_EXCEPTION = "Error deleting timetable entry. Pleas
 
 export const FETCH_ATTENDANCE_EXCEPTION = "Error fetching attendance data. Please try again later.";
 export const DELETE_ATTENDANCE_EXCEPTION = "Error deleting attendance record. Please try again.";
+export const UPDATE_ATTENDANCE_EXCEPTION = "Error updating attendance record. Please try again.";

@@ -1,19 +1,22 @@
-import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
+// src/pages/Admin/AttendanceManagement.tsx
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  ChangeEvent,
+  KeyboardEvent,
+  FormEvent,
+} from "react";
+import { Search, X, Edit3, Trash2 } from "lucide-react";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonButton from "../../components/common/Button";
-import CommonTable, { Column } from "../../components/common/Table";
-import CourseCard, {
-  AggregatedCourseAttendance,
-} from "../../components/common/CourseCard";
+import CourseCard, { AggregatedCourseAttendance } from "../../components/common/CourseCard";
 import Chart from "../../components/common/Chart";
-import attendanceService, {
-  Attendance,
-} from "../../services/attendanceService";
+import attendanceService, { Attendance } from "../../services/attendanceService";
 import {
   ATTENDANCE_HEADING,
   ATTENDANCE_SEARCH_PLACEHOLDER,
-  ATTENDANCE_NO_DATA_FOUND,
   ATTENDANCE_DELETE_BUTTON_LABEL,
   COURSE_CHART_TITLE,
   COURSE_POPUP_HEADING,
@@ -22,305 +25,345 @@ import {
 import {
   FETCH_ATTENDANCE_EXCEPTION,
   DELETE_ATTENDANCE_EXCEPTION,
+  UPDATE_ATTENDANCE_EXCEPTION,
 } from "../../constants/exceptionMessages";
 
-/**
- * AttendanceManagement Component
- * -------------------------------
- * Retrieves attendance records from the backend via attendanceService,
- * aggregates the records by course, and displays them using CourseCard components
- * and a bar chart visualization. Individual attendance records can be deleted
- * from within a popup modal that displays course details.
- *
- * Exception handling is applied for each backend operation.
- */
 const AttendanceManagement: React.FC = () => {
-  // State for attendance records retrieved from the backend.
-  const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
-  // State for search query.
-  const [searchQuery, setSearchQuery] = useState("");
-  // State for error messages.
-  const [error, setError] = useState<string | null>(null);
-  // State for success messages (if needed).
+  // all raw attendance records
+  const [records, setRecords] = useState<Attendance[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
-  // State for the course details popup modal.
-  const [selectedCoursePopup, setSelectedCoursePopup] =
-    useState<AggregatedCourseAttendance | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
-  /**
-   * fetchAttendance
-   * -----------------
-   * Retrieves all attendance records from the backend using attendanceService.getAll().
-   * Exceptions are caught and an error message is set.
-   */
-  const fetchAttendance = async () => {
+  // which course we’re inspecting
+  const [selectedCourse, setSelectedCourse] = useState<AggregatedCourseAttendance | null>(null);
+
+  // which record is being edited (in slide-over)
+  const [editingRecord, setEditingRecord] = useState<Attendance | null>(null);
+  const [editStatus, setEditStatus] = useState<string>("");
+
+  // load all records on mount / refresh
+  const fetchAll = async () => {
+    setError(null);
     try {
-      // Call the service to retrieve all attendance records.
       const data = await attendanceService.getAll();
-      setAttendanceRecords(data);
-    } catch (err) {
-      console.error("Error fetching attendance:", err);
+      setRecords(data);
+    } catch (e) {
+      console.error(e);
       setError(FETCH_ATTENDANCE_EXCEPTION);
     }
   };
-
-  // Fetch attendance records when the component mounts.
   useEffect(() => {
-    fetchAttendance();
+    fetchAll();
   }, []);
 
-  /**
-   * handleSearchChange
-   * ------------------
-   * Updates the search query state as the user types.
-   */
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  // search / filter
+  const filtered = useMemo(
+    () =>
+      records.filter((r) =>
+        `${r.date} ${r.status}`
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      ),
+    [records, search]
+  );
+
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
   };
+  const clearSearch = () => setSearch("");
 
-  /**
-   * filteredAttendance
-   * --------------------
-   * Filters the attendance records based on the search query.
-   */
-  const filteredAttendance = useMemo(() => {
-    return attendanceRecords.filter(
-      (record) =>
-        record.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        record.status.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [attendanceRecords, searchQuery]);
+  // group by course
+  const courses = useMemo(() => {
+    const map = new Map<number, Attendance[]>();
+    filtered.forEach((r) => {
+      const arr = map.get(r.courseId) || [];
+      arr.push(r);
+      map.set(r.courseId, arr);
+    });
+    return Array.from(map.entries()).map(([courseId, recs]) => {
+      const presentCount = recs.filter((r) => r.status === "Present").length;
+      const studentCount = new Set(recs.map((r) => r.userId)).size;
+      return {
+        courseId,
+        courseName: `Course ${courseId}`,
+        teacher: "—",          // you can look up teacher later if you have that assign service
+        totalStudents: studentCount,
+        present: presentCount,
+        updatedAt: new Date().toLocaleTimeString(),
+        records: recs,
+      } as AggregatedCourseAttendance;
+    });
+  }, [filtered]);
 
-  /**
-   * aggregatedCourseAttendance
-   * ----------------------------
-   * Aggregates attendance records by course.
-   * For each course, calculates:
-   * - courseId
-   * - courseName (as "Course {courseId}")
-   * - teacher (default to "Unknown")
-   * - totalStudents (number of unique students for the course)
-   * - present (number of records with status "Present")
-   * - updatedAt (current time)
-   * - records (all attendance records for that course)
-   */
-  const aggregatedCourseAttendance: AggregatedCourseAttendance[] =
-    useMemo(() => {
-      const groups = new Map<number, Attendance[]>();
-      filteredAttendance.forEach((record) => {
-        if (!groups.has(record.courseId)) {
-          groups.set(record.courseId, []);
-        }
-        groups.get(record.courseId)!.push(record);
-      });
-      const aggregates: AggregatedCourseAttendance[] = [];
-      groups.forEach((records, courseId) => {
-        const presentCount = records.filter(
-          (r) => r.status === "Present"
-        ).length;
-        const uniqueStudents = new Set(records.map((r) => r.userId)).size;
-        aggregates.push({
-          courseId,
-          courseName: `Course ${courseId}`,
-          teacher: "Unknown",
-          totalStudents: uniqueStudents,
-          present: presentCount,
-          updatedAt: new Date().toLocaleTimeString(),
-          records,
-        });
-      });
-      return aggregates;
-    }, [filteredAttendance]);
-
-  /**
-   * handleCourseCardClick
-   * -----------------------
-   * Opens the course details popup modal for the selected course.
-   * @param course - Aggregated course attendance data.
-   */
-  const handleCourseCardClick = (course: AggregatedCourseAttendance) => {
-    setSelectedCoursePopup(course);
-  };
-
-  /**
-   * handleDeleteAttendance
-   * ------------------------
-   * Deletes an individual attendance record using attendanceService.unMarkAttendance.
-   * Refreshes the attendance data upon successful deletion.
-   * @param id - The ID of the attendance record to delete.
-   */
-  const handleDeleteAttendance = async (id: number) => {
-    if (
-      window.confirm("Are you sure you want to delete this attendance record?")
-    ) {
-      try {
-        await attendanceService.unMarkAttendance(id);
-        setSuccess("Attendance record deleted successfully.");
-        // Refresh the attendance records after deletion.
-        fetchAttendance();
-      } catch (err) {
-        console.error("Error deleting attendance record:", err);
-        setError(DELETE_ATTENDANCE_EXCEPTION);
-      }
-    }
-  };
-
-  /**
-   * chartData
-   * ---------
-   * Prepares the data for a bar chart visualization of course attendance.
-   * X-axis: Course Names.
-   * Y-axis: Number of present attendance records.
-   */
+  // chart data
   const chartData = useMemo(
     () => ({
-      labels: aggregatedCourseAttendance.map((course) => course.courseName),
+      labels: courses.map((c) => c.courseName),
       datasets: [
         {
-          label: "Attendance",
-          data: aggregatedCourseAttendance.map((course) => course.present),
-          borderColor: "rgba(0,230,255,0.8)",
-          backgroundColor: "rgba(0,230,255,0.2)",
-          tension: 0.4,
+          label: "Present",
+          data: courses.map((c) => c.present),
         },
       ],
     }),
-    [aggregatedCourseAttendance]
+    [courses]
   );
 
-  const columnsForUserAttendance: Column<Attendance>[] = [
-    { header: "User ID", accessor: "userId" },
-    { header: "Date", accessor: "date" },
-    { header: "Status", accessor: "status" },
-  ];
+  // remove one attendance
+  const handleDeleteRecord = async (id: number) => {
+    if (!confirm("Delete this record?")) return;
+    try {
+      await attendanceService.unMarkAttendance(id);
+      setSuccess("Record deleted");
+      fetchAll();
+    } catch (e) {
+      console.error(e);
+      setError(DELETE_ATTENDANCE_EXCEPTION);
+    }
+  };
+
+  // open slide-over on a particular record
+  const openEdit = (rec: Attendance) => {
+    setEditingRecord(rec);
+    setEditStatus(rec.status);
+    setError(null);
+    setSuccess(null);
+  };
+  const closeEdit = () => {
+    setEditingRecord(null);
+  };
+
+  // save updated status
+  const saveEdit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingRecord) return;
+    try {
+      await attendanceService.updateAttendance(editingRecord.id, { status: editStatus });
+      setSuccess("Updated successfully");
+      closeEdit();
+      fetchAll();
+    } catch (e) {
+      console.error(e);
+      setError(UPDATE_ATTENDANCE_EXCEPTION);
+    }
+  };
+
+  // escape closes slide-over
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") closeEdit();
+  };
 
   return (
-    <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
-      {/* Sidebar Navigation */}
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        {/* Top Navbar */}
         <Navbar />
-        <main className="p-6 md:p-8">
-          {/* Page Heading */}
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-8">
-            {ATTENDANCE_HEADING}
-          </h1>
 
-          {/* Search Bar */}
-          <div className="flex items-center mb-8">
-            <input
-              type="text"
-              placeholder={ATTENDANCE_SEARCH_PLACEHOLDER}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-l-xl focus:outline-none text-white placeholder-gray-400"
-            />
+        <main className="p-8 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <h1 className="text-3xl font-bold">{ATTENDANCE_HEADING}</h1>
+            <div className="flex items-center mt-4 sm:mt-0 space-x-2">
+              <div className="relative">
+                <Search className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={ATTENDANCE_SEARCH_PLACEHOLDER}
+                  value={search}
+                  onChange={handleSearch}
+                  className="pl-10 pr-3 py-2 bg-gray-800 border border-indigo-500 rounded-l-md focus:outline-none text-white"
+                />
+              </div>
+              {search && (
+                <CommonButton
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<X />}
+                  label="Clear"
+                  onClick={clearSearch}
+                />
+              )}
+            </div>
           </div>
 
-          {/* Display error message if present */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">
-              {error}
+          {/* Alerts */}
+          {(error || success) && (
+            <div
+              className={`p-4 rounded text-white ${
+                error ? "bg-red-600" : "bg-green-600"
+              }`}
+            >
+              {error ?? success}
             </div>
           )}
 
-          {/* Display success message if present */}
-          {success && (
-            <div className="mb-4 p-4 bg-green-500 bg-opacity-50 border border-green-700 rounded-xl text-white">
-              {success}
-            </div>
-          )}
-
-          {/* Course Attendance Cards */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {aggregatedCourseAttendance.length > 0 ? (
-              aggregatedCourseAttendance.map((course) => (
+          {/* Course Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {courses.length > 0 ? (
+              courses.map((c) => (
                 <CourseCard
-                  key={course.courseId}
-                  course={course}
-                  onClick={handleCourseCardClick}
+                  key={c.courseId}
+                  course={c}
+                  onClick={() => setSelectedCourse(c)}
                 />
               ))
             ) : (
-              <p className="text-white col-span-full text-center">
-                {ATTENDANCE_NO_DATA_FOUND}
-              </p>
+              <p className="col-span-full text-center">No attendance records found</p>
             )}
-          </section>
+          </div>
 
-          {/* Bar Chart Visualization */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              {COURSE_CHART_TITLE}
-            </h2>
-            <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-6">
-              {/* Ensure that your Chart component has registered BarElement for "bar" charts */}
-              <Chart
-                type="bar"
-                data={chartData}
-                options={{
-                  responsive: true,
-                  plugins: { legend: { position: "top" } },
-                }}
+          {/* Bar Chart */}
+          {courses.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">{COURSE_CHART_TITLE}</h2>
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <Chart type="bar" data={chartData} options={{}} />
+              </div>
+            </section>
+          )}
+
+          {/* Drill-in Slide-over for a course */}
+          {selectedCourse && (
+            <div
+              className="fixed inset-0 flex z-50"
+              onKeyDown={onKeyDown}
+              tabIndex={0}
+            >
+              <button
+                className="absolute inset-0 bg-black bg-opacity-70"
+                onClick={() => setSelectedCourse(null)}
+                aria-label="Close"
               />
+              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl overflow-auto">
+                <h2 className="text-2xl font-semibold mb-4">
+                  {COURSE_POPUP_HEADING}: {selectedCourse.courseName}
+                </h2>
+                <button
+                  onClick={() => setSelectedCourse(null)}
+                  aria-label="Close"
+                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full hover:bg-gray-600"
+                >
+                  <X className="h-5 w-5 text-gray-300" />
+                </button>
+
+                <div className="space-y-4">
+                  {selectedCourse.records.map((r) => (
+                    <div
+                      key={r.id}
+                      className="flex items-center justify-between bg-gray-700 p-2 rounded"
+                    >
+                      <span className="flex-1">
+                        {r.date} — User {r.userId} ({r.status})
+                      </span>
+                      <CommonButton
+                        size="sm"
+                        variant="primary"
+                        leftIcon={<Edit3 />}
+                        label="Edit"
+                        onClick={() => openEdit(r)}
+                      />
+                      <CommonButton
+                        size="sm"
+                        variant="danger"
+                        leftIcon={<Trash2 />}
+                        label={ATTENDANCE_DELETE_BUTTON_LABEL}
+                        onClick={() => handleDeleteRecord(r.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <CommonButton
+                  size="sm"
+                  variant="secondary"
+                  label={COURSE_POPUP_CLOSE_BUTTON_LABEL}
+                  onClick={() => setSelectedCourse(null)}
+                  className="mt-4"
+                />
+              </aside>
             </div>
-          </section>
+          )}
 
-          {/* (Optional) User-Wise Attendance Table */}
-          {/* Uncomment below if you wish to display user-wise attendance */}
+          {/* Slide-over for record edit */}
+          {editingRecord && (
+            <div
+              className="fixed inset-0 flex z-60"
+              onKeyDown={onKeyDown}
+              tabIndex={0}
+            >
+              <button
+                className="absolute inset-0 bg-black bg-opacity-70"
+                onClick={closeEdit}
+                aria-label="Close edit"
+              />
+              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl">
+                <h3 className="text-2xl font-semibold mb-4">
+                  Edit Attendance
+                </h3>
+                <button
+                  onClick={closeEdit}
+                  aria-label="Close"
+                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full hover:bg-gray-600"
+                >
+                  <X className="h-5 w-5 text-gray-300" />
+                </button>
 
-          <section>
-            <h2 className="text-3xl font-bold text-white mb-4">
-              User-Wise Attendance
-            </h2>
-            <CommonTable
-              columns={columnsForUserAttendance}
-              data={[]}
-              initialSortColumn="userId"
-              initialSortDirection="asc"
-            />
-          </section>
+                <form onSubmit={saveEdit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editingRecord.date}
+                      disabled
+                      className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                      Course ID
+                    </label>
+                    <input
+                      type="number"
+                      value={editingRecord.courseId}
+                      disabled
+                      className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded text-white"
+                    >
+                      <option value="Present">Present</option>
+                      <option value="Absent">Absent</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <CommonButton
+                      size="sm"
+                      label="Cancel"
+                      onClick={closeEdit}
+                    />
+                      isLoading={saving}
+                      variant="primary"
+                    />
+                  </div>
+                </form>
+              </aside>
+            </div>
+          )}
+              </aside>
+            </div>
+          )}
         </main>
       </div>
-
-      {/* Popup Modal for Course Details */}
-      {selectedCoursePopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-          <div className="bg-gray-800 p-8 rounded-xl border border-indigo-500 shadow-xl w-full max-w-lg mx-4 animate-fadeIn max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              {COURSE_POPUP_HEADING}: {selectedCoursePopup.courseName}
-            </h2>
-            <p className="text-gray-300 mb-2">
-              Teacher: {selectedCoursePopup.teacher}
-            </p>
-            <ul className="text-gray-200 text-sm mb-4">
-              {(selectedCoursePopup.records as Attendance[]).map((record) => (
-                <li
-                  key={record.id}
-                  className="mb-1 flex justify-between items-center"
-                >
-                  <span>
-                    User {record.userId} - {record.date} ({record.status})
-                  </span>
-                  <CommonButton
-                    label={ATTENDANCE_DELETE_BUTTON_LABEL}
-                    onClick={() => handleDeleteAttendance(record.id)}
-                    className="bg-red-600 hover:bg-red-700 text-xs"
-                  />
-                </li>
-              ))}
-            </ul>
-            <CommonButton
-              label={COURSE_POPUP_CLOSE_BUTTON_LABEL}
-              onClick={() => setSelectedCoursePopup(null)}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
-
-export default AttendanceManagement;
+export default React.memo(AttendanceManagement);
