@@ -132,12 +132,11 @@ const UserManagement: React.FC = () => {
   const handleClose = () => setSelectedUser(null);
 
   return (
-    <div className="min-h-screen flex bg-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-
-        <main className="p-6 space-y-8">
+        <main className="p-8 space-y-6 overflow-x-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <h1 className="text-3xl font-bold">

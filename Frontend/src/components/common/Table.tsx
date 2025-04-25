@@ -114,11 +114,12 @@ function CommonTable<T extends { id: string | number }>(
 
   return (
     <div className="overflow-x-auto shadow rounded-lg">
-      <table className="min-w-full divide-y divide-gray-700">
+      <table className="min-w-full table-auto text-sm divide-y divide-gray-700">
         <thead className="bg-gray-800 sticky top-0 z-10">
           <tr>
             {columns.map((col) => {
-              const key = typeof col.accessor === 'function' ? col.header : col.accessor;
+              const key =
+                typeof col.accessor === "function" ? col.header : col.accessor;
               const isActive = key === sortColumn;
               return (
                 <th
@@ -126,16 +127,20 @@ function CommonTable<T extends { id: string | number }>(
                   onClick={() => handleSort(col)}
                   scope="col"
                   className={clsx(
-                    'px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer select-none',
-                    isActive ? 'bg-gray-700' : 'hover:bg-gray-700',
-                    'focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                    "px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer select-none",
+                    isActive ? "bg-gray-700" : "hover:bg-gray-700",
+                    "focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   )}
                 >
                   <div className="flex items-center">
                     <span>{col.header}</span>
                     {isActive && (
                       <span className="ml-1">
-                        {sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                        {sortDirection === "asc" ? (
+                          <ArrowUp size={12} />
+                        ) : (
+                          <ArrowDown size={12} />
+                        )}
                       </span>
                     )}
                   </div>
@@ -150,26 +155,27 @@ function CommonTable<T extends { id: string | number }>(
               key={row.id}
               onClick={() => onRowClick?.(row)}
               className={clsx(
-                'transition-colors cursor-pointer',
-                'odd:bg-black even:bg-gray-900',
-                onRowClick ? 'focus:outline-none focus:ring-2 focus:ring-indigo-500' : ''
+                "transition-colors cursor-pointer",
+                "odd:bg-black even:bg-gray-900",
+                onRowClick
+                  ? "focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  : ""
               )}
               tabIndex={onRowClick ? 0 : -1}
             >
               {columns.map((col) => {
                 // Extract the nested ternary into a separate variable
-                const accessorValue = typeof col.accessor === 'function'
-                  ? col.accessor(row)
-                  : String(row[col.accessor] ?? '');
-                  
-                const content = col.Cell
-                  ? col.Cell(row)
-                  : accessorValue;
+                const accessorValue =
+                  typeof col.accessor === "function"
+                    ? col.accessor(row)
+                    : String(row[col.accessor] ?? "");
+
+                const content = col.Cell ? col.Cell(row) : accessorValue;
                 return (
                   <td
                     key={`${row.id}-${col.header}`}
                     className="px-6 py-4 max-w-xs truncate text-white"
-                    title={typeof content === 'string' ? content : undefined}
+                    title={typeof content === "string" ? content : undefined}
                   >
                     {content}
                   </td>

@@ -117,9 +117,9 @@ const MyCourses: React.FC = () => {
   return (
     <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-x-hidden">
         <Navbar />
-        <main className="p-8">
+        <main className="p-8 overflow-x-auto">
           {/* Heading */}
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-6">
             {MYCOURSES_STRINGS.PAGE_TITLE}

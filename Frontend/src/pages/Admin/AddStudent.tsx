@@ -114,9 +114,9 @@ const AddStudent: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 relative">
+        <main className="flex-1 p-8 relative overflow-x-auto">
           {/* Back Button */}
           <button
             onClick={handleBack}
@@ -138,7 +138,10 @@ const AddStudent: React.FC = () => {
               {/* Username & Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="username" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="username"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_USERNAME}
                   </label>
                   <input
@@ -171,7 +174,10 @@ const AddStudent: React.FC = () => {
               {/* Passwords */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="password" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="password"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_PASSWORD}
                   </label>
                   <input
@@ -186,7 +192,10 @@ const AddStudent: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="confirmPassword" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_CONFIRM_PASSWORD}
                   </label>
                   <input
@@ -205,7 +214,10 @@ const AddStudent: React.FC = () => {
               {/* Personal Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="firstName"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_FIRST_NAME}
                   </label>
                   <input
@@ -219,7 +231,10 @@ const AddStudent: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="lastName"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_LAST_NAME}
                   </label>
                   <input
@@ -237,7 +252,10 @@ const AddStudent: React.FC = () => {
               {/* Date & Gender */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="dateOfBirth" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="dateOfBirth"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_DATE_OF_BIRTH}
                   </label>
                   <input
@@ -286,7 +304,10 @@ const AddStudent: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="contactNumber" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="contactNumber"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_CONTACT_NUMBER}
                   </label>
                   <input
@@ -301,7 +322,10 @@ const AddStudent: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="nationality" className="block mb-2 font-semibold">
+                  <label
+                    htmlFor="nationality"
+                    className="block mb-2 font-semibold"
+                  >
                     {STUDENT_LABEL_NATIONALITY}
                   </label>
                   <input

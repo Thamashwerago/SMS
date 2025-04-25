@@ -235,10 +235,9 @@ const CourseManagement: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-
-        <main className="p-6 space-y-8">
+        <main className="flex-1 p-6 space-y-8 overflow-hidden">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <h1 className="text-3xl font-bold">{COURSE_MANAGEMENT_HEADING}</h1>
@@ -318,7 +317,6 @@ const CourseManagement: React.FC = () => {
                 >
                   <X className="h-5 w-5 text-gray-300" />
                 </button>
-
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();

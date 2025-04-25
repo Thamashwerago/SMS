@@ -89,9 +89,9 @@ const AddAdmin: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 relative">
+        <main className="flex-1 p-8 relative overflow-x-auto">
           {/* Back Button */}
           <button
             onClick={handleBack}
@@ -114,7 +114,10 @@ const AddAdmin: React.FC = () => {
 
               {/* Name */}
               <div>
-                <label htmlFor="name" className="block text-lg font-semibold mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-lg font-semibold mb-2"
+                >
                   {ADMIN_LABEL_NAME}
                 </label>
                 <input
@@ -131,7 +134,10 @@ const AddAdmin: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-lg font-semibold mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-lg font-semibold mb-2"
+                >
                   {ADMIN_LABEL_EMAIL}
                 </label>
                 <input
@@ -148,7 +154,10 @@ const AddAdmin: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-lg font-semibold mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-lg font-semibold mb-2"
+                >
                   {ADMIN_LABEL_PASSWORD}
                 </label>
                 <input
@@ -165,7 +174,10 @@ const AddAdmin: React.FC = () => {
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-lg font-semibold mb-2">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-lg font-semibold mb-2"
+                >
                   {ADMIN_LABEL_CONFIRM_PASSWORD}
                 </label>
                 <input

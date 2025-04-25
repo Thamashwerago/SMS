@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
 
         <main className="p-6 space-y-8">

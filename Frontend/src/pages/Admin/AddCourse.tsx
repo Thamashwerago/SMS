@@ -135,9 +135,9 @@ const AddCourse: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-8 relative">
+        <main className="flex-1 p-8 relative overflow-x-auto">
           {/* Back Button */}
           <button
             onClick={handleBack}
