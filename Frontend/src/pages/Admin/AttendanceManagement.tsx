@@ -69,7 +69,7 @@ const AttendanceManagement: React.FC = () => {
 
   const openRow = (r: Attendance) => {
     setSelected(r);
-    setEditData({ status: r.status });
+    setEditData(r);
     setIsEditing(false);
     setError(null);
     setSuccess(null);
@@ -77,14 +77,14 @@ const AttendanceManagement: React.FC = () => {
   const closeRow = () => setSelected(null);
 
   const handleEditChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setEditData({ status: e.target.value });
+    setEditData({...editData, status: e.target.value });
   };
 
   const save = async () => {
     if (!selected) return;
     setError(null);
     try {
-      await attendanceService.updateAttendance(selected.id, { status: editData.status });
+      await attendanceService.updateAttendance(selected.id, { ...editData });
       setSuccess("Updated successfully");
       closeRow();
       const all = await attendanceService.getAll();
@@ -147,7 +147,9 @@ const AttendanceManagement: React.FC = () => {
         <main className="p-6 space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h1 className="text-3xl font-bold">{ATTENDANCE_MANAGEMENT_HEADING}</h1>
+            <h1 className="text-3xl font-bold">
+              {ATTENDANCE_MANAGEMENT_HEADING}
+            </h1>
             <div className="flex items-center mt-4 sm:mt-0 space-x-2">
               <div className="relative">
                 <Search className="absolute inset-y-0 left-0 pl-3 h-10 w-7 text-gray-400" />
@@ -202,7 +204,9 @@ const AttendanceManagement: React.FC = () => {
                 aria-label="Close"
               />
               <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl">
-                <h2 className="text-2xl font-semibold mb-4">Attendance Details</h2>
+                <h2 className="text-2xl font-semibold mb-4">
+                  Attendance Details
+                </h2>
                 <button
                   onClick={closeRow}
                   aria-label="Close"
@@ -213,19 +217,28 @@ const AttendanceManagement: React.FC = () => {
 
                 <div className="space-y-4">
                   <div>
-                    <div className="block text-sm font-medium text-gray-200 mb-1">Date</div>
+                    <div className="block text-sm font-medium text-gray-200 mb-1">
+                      Date
+                    </div>
                     <p className="text-gray-300">{selected.date}</p>
                   </div>
                   <div>
-                    <div className="block text-sm font-medium text-gray-200 mb-1">User ID</div>
+                    <div className="block text-sm font-medium text-gray-200 mb-1">
+                      User ID
+                    </div>
                     <p className="text-gray-300">{selected.userId}</p>
                   </div>
                   <div>
-                    <div className="block text-sm font-medium text-gray-200 mb-1">Course ID</div>
+                    <div className="block text-sm font-medium text-gray-200 mb-1">
+                      Course ID
+                    </div>
                     <p className="text-gray-300">{selected.courseId}</p>
                   </div>
                   <div>
-                    <label htmlFor="statusSelect" className="block text-sm font-medium text-gray-200 mb-1">
+                    <label
+                      htmlFor="statusSelect"
+                      className="block text-sm font-medium text-gray-200 mb-1"
+                    >
                       Status
                     </label>
                     {isEditing ? (
@@ -236,8 +249,8 @@ const AttendanceManagement: React.FC = () => {
                         onChange={handleEditChange}
                         className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded text-white"
                       >
-                        <option value="Present">Present</option>
-                        <option value="Absent">Absent</option>
+                        <option value="PRESENT">PRESENT</option>
+                        <option value="ABSENT">ABSENT</option>
                       </select>
                     ) : (
                       <p className="text-gray-300">{selected.status}</p>

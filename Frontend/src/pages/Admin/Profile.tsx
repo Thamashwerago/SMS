@@ -25,9 +25,10 @@ const AdminProfile: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const id = sessionStorage.getItem("userId");
-      if (!id) throw new Error("No user ID in session");
-      const data = await userService.getById(id);
+      const user = localStorage.getItem("user") ?? sessionStorage.getItem("user") ?? "";
+      const { userId } = JSON.parse(user);
+      if (!userId) throw new Error("No user ID in session");
+      const data = await userService.getById(userId);
       setProfile(data);
       setFormData({
         username: data.username,

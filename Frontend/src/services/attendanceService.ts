@@ -39,7 +39,7 @@ const attendanceService = {
    */
   getAll: async (): Promise<Attendance[]> => {
     const response = await axiosInstance.get(`/attendance`);
-    return response.data;
+    return response.data.content;
   },
 
   /**
