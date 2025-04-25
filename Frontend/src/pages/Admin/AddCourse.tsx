@@ -1,15 +1,13 @@
 // src/pages/Admin/AddCourse.tsx
 import React, { useState, useEffect, ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import { ArrowLeft, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonButton from "../../components/common/Button";
 import courseService, { Course } from "../../services/courseService";
 import userService, { User } from "../../services/userService";
-import {
-  COURSE_STRINGS
-} from "../../constants/admin/courseConsts";
+import { COURSE_STRINGS } from "../../constants/admin/courseConsts";
 
 interface CourseFormData {
   code: string;
@@ -31,30 +29,27 @@ const initialForm: CourseFormData = {
 
 const AddCourse: React.FC = () => {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState<CourseFormData>(initialForm);
   const [lastUpdate, setLastUpdate] = useState<string>(() =>
     new Date().toISOString()
   );
+  const [teachers, setTeachers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  const [teachers, setTeachers] = useState<User[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
         const all = await userService.getAll();
-        setTeachers(all.filter((u) => u.role === "TEACHER"));
-      } catch (e) {
-        console.error("Failed to load users", e);
+        setTeachers(all.filter(u => u.role === "TEACHER"));
+      } catch {
+        // ignore
       }
     })();
   }, []);
 
   const handleBack = () => navigate(-1);
-
   const handleClear = () => {
     setFormData(initialForm);
     setError(null);
@@ -66,10 +61,9 @@ const AddCourse: React.FC = () => {
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]:
-        name === "teacherId" ? Number(value) : value,
+      [name]: name === "teacherId" ? Number(value) : value
     }));
     setLastUpdate(new Date().toISOString());
     setError(null);
@@ -77,16 +71,8 @@ const AddCourse: React.FC = () => {
   };
 
   const validateForm = () => {
-    const { code, name, credits, duration, description, teacherId } =
-      formData;
-    if (
-      !code ||
-      !name ||
-      !credits ||
-      !duration ||
-      !description ||
-      !teacherId
-    ) {
+    const { code, name, credits, duration, description, teacherId } = formData;
+    if (!code || !name || !credits || !duration || !description || !teacherId) {
       setError(COURSE_STRINGS.ERROR_VALIDATION);
       return false;
     }
@@ -110,22 +96,16 @@ const AddCourse: React.FC = () => {
         duration: Number(formData.duration),
         description: formData.description,
       });
-
       // 2) assign teacher
       await courseService.createCourseAssign({
         courseId: created.id,
         userId: formData.teacherId,
-        role: "Teacher",
+        role: "TEACHER",
       });
-
       setSuccess(COURSE_STRINGS.SUCCESS_ADD);
       handleClear();
-      setTimeout(
-        () => navigate("/admin/course-management"),
-        1500
-      );
-    } catch (err) {
-      console.error("Error creating course or assigning teacher:", err);
+      setTimeout(() => navigate("/admin/course-management"), 1500);
+    } catch {
       setError(COURSE_STRINGS.ERROR_ADD);
     } finally {
       setSubmitting(false);
@@ -133,33 +113,43 @@ const AddCourse: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
       <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 p-8 relative overflow-x-auto">
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            aria-label="Go back"
-            className="absolute top-8 right-8 p-2 bg-gray-800 bg-opacity-50 hover:bg-opacity-75 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          >
-            <ArrowLeft size={24} />
-          </button>
 
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-8">
-            {COURSE_STRINGS.PAGE_HEADING}
-          </h1>
+        <main className="p-6 space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{COURSE_STRINGS.PAGE_HEADING}</h1>
+            <CommonButton
+              size="md"
+              variant="secondary"
+              leftIcon={<ArrowLeft />}
+              label="Back"
+              onClick={handleBack}
+            />
+          </div>
 
-          <div className="mx-auto w-full max-w-xl bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-8">
+          {/* Alerts */}
+          {error && (
+            <div className="p-4 bg-red-600 rounded text-white">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-4 bg-green-600 rounded text-white">
+              {success}
+            </div>
+          )}
+
+          {/* Form Card */}
+          <div className="bg-gray-800 rounded-lg shadow p-6 max-w-xl mx-auto">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && <p className="text-red-500">{error}</p>}
-              {success && <p className="text-green-500">{success}</p>}
-
               {/* Code & Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {COURSE_STRINGS.LABEL_CODE}
                   </label>
                   <input
@@ -168,11 +158,11 @@ const AddCourse: React.FC = () => {
                     onChange={handleChange}
                     placeholder={COURSE_STRINGS.PLACEHOLDER_CODE}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {COURSE_STRINGS.LABEL_NAME}
                   </label>
                   <input
@@ -181,15 +171,15 @@ const AddCourse: React.FC = () => {
                     onChange={handleChange}
                     placeholder={COURSE_STRINGS.PLACEHOLDER_NAME}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Credits & Duration */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {COURSE_STRINGS.LABEL_CREDITS}
                   </label>
                   <input
@@ -200,11 +190,11 @@ const AddCourse: React.FC = () => {
                     onChange={handleChange}
                     placeholder={COURSE_STRINGS.PLACEHOLDER_CREDITS}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 font-semibold">
+                  <label className="block mb-1 font-semibold">
                     {COURSE_STRINGS.LABEL_DURATION}
                   </label>
                   <input
@@ -215,14 +205,14 @@ const AddCourse: React.FC = () => {
                     onChange={handleChange}
                     placeholder={COURSE_STRINGS.PLACEHOLDER_DURATION}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block mb-2 font-semibold">
+                <label className="block mb-1 font-semibold">
                   {COURSE_STRINGS.LABEL_DESCRIPTION}
                 </label>
                 <textarea
@@ -231,17 +221,14 @@ const AddCourse: React.FC = () => {
                   onChange={handleChange}
                   placeholder={COURSE_STRINGS.PLACEHOLDER_DESCRIPTION}
                   required
-                  className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                  className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
-              {/* Assign Teacher & Last Updated */}
+              {/* Teacher & Last Updated */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label
-                    htmlFor="teacherSelect"
-                    className="block mb-2 font-semibold"
-                  >
+                  <label htmlFor="teacherSelect" className="block mb-1 font-semibold">
                     Assign Teacher
                   </label>
                   <select
@@ -250,22 +237,19 @@ const AddCourse: React.FC = () => {
                     value={formData.teacherId}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md focus:ring-indigo-400 text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500"
+                    aria-label="Select teacher"
                   >
                     <option value="">Select Teacher</option>
-                    {teachers.map((t) => (
+                    {teachers.map(t => (
                       <option key={t.id} value={t.id}>
                         {t.username}
                       </option>
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label
-                    htmlFor="lastUpdated"
-                    className="block mb-2 font-semibold"
-                  >
+                  <label htmlFor="lastUpdated" className="block mb-1 font-semibold">
                     Last Updated
                   </label>
                   <input
@@ -273,7 +257,9 @@ const AddCourse: React.FC = () => {
                     type="text"
                     value={new Date(lastUpdate).toLocaleString()}
                     disabled
-                    className="w-full px-4 py-2 bg-gray-800 border border-indigo-500 rounded-md text-gray-400"
+                    className="w-full px-4 py-2 bg-gray-700 border border-indigo-500 rounded text-gray-400"
+                    title="Last updated timestamp"
+                    aria-label="Last updated timestamp"
                   />
                 </div>
               </div>
