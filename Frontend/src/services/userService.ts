@@ -51,7 +51,7 @@ const userService = {
    * @returns A promise resolving to the newly created User object.
    */
   create: async (user: Omit<User, 'id'>): Promise<User> => {
-    const response = await axiosInstance.post(`/user`, user);
+    const response = await axiosInstance.post(`/user/signin`, user);
     return response.data;
   },
 
