@@ -99,7 +99,6 @@ const AddCourse: React.FC = () => {
         duration: Number(formData.duration),
         description: formData.description,
         // Use the correct property name that matches the Course type
-        teacher: formData.teacherId,
         students: formData.studentIds,
       });
       setSuccess(COURSE_STRINGS.SUCCESS_ADD);

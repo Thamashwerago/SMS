@@ -101,7 +101,7 @@ const TeacherManagement: React.FC = () => {
   // Open modal
   const openModal = (teacher: Teacher) => {
     setSelectedTeacher(teacher);
-    setEditData({ name: teacher.name, phone: teacher.phone, address: teacher.address });
+    setEditData(teacher);
     setIsEditing(false);
     setError(null);
     setSuccess(null);

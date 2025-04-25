@@ -77,7 +77,6 @@ const StudentManagement: React.FC = () => {
       setLoading(true);
       try {
         const resp = await studentService.getAll();
-        console.log(resp);
         setStudents(Array.isArray(resp) ? resp : []);
       } catch (err) {
         console.error(err);
@@ -106,7 +105,7 @@ const StudentManagement: React.FC = () => {
     setError(null);
     setSuccess(null);
     setSelectedStudent(student);
-    setEditData({ firstName: student.firstName, lastName: student.lastName, contactNumber: student.contactNumber });
+    setEditData(student);
     setIsEditing(false);
   };
 
