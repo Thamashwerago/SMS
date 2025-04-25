@@ -31,7 +31,7 @@ const studentService = {
       params: { page, size },
     });
     // Assuming the backend response structure is a Page with a "content" array.
-    return response.data.content;
+    return response.data;
   },
 
   /**
