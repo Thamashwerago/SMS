@@ -18,16 +18,20 @@ export interface Student {
 
 const studentService = {
   /**
-   * Retrieve all student records with pagination.
-   * @param limit Maximum number of results to return (default is 100).
-   * @param offset Number of records to skip (default is 0).
-   * @returns A promise resolving to an array of Student objects.
+   * Retrieve all teacher records with pagination.
+   * 
+   * @param page - The page number (0-based index). Default is 0.
+   * @param size - The number of records per page. Default is 100.
+   * @returns A promise resolving to an array of Teacher objects.
+   * 
+   * Assumes the backend returns a paginated result with a `content` property.
    */
-  getAll: async (limit: number = 100, offset: number = 0): Promise<Student[]> => {
+  getAll: async (page: number = 0, size: number = 100): Promise<Student[]> => {
     const response = await axiosInstance.get(`/student`, {
-      params: { limit, offset },
+      params: { page, size },
     });
-    return response.data;
+    // Assuming the backend response structure is a Page with a "content" array.
+    return response.data.content;
   },
 
   /**

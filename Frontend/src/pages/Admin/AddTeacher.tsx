@@ -85,15 +85,14 @@ const AddTeacher: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const userResp = await userService.create({
+      const CreateUser = await userService.create({
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        role: "Teacher",
-        token: "",
+        role: "TEACHER",
       });
       await teacherService.create({
-        userId: userResp.id,
+        userId: CreateUser.id,
         name: formData.name,
         phone: formData.phone,
         dob: formData.dob,
@@ -101,7 +100,7 @@ const AddTeacher: React.FC = () => {
         address: formData.address,
         joiningDate: new Date(formData.joiningDate),
         status: formData.status,
-        role: "Teacher",
+        role: "TEACHER",
       });
       setSuccess(TEACHER_SUCCESS_MESSAGE);
       setFormData(initialForm);

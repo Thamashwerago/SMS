@@ -88,8 +88,7 @@ const AddStudent: React.FC = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        role: "Student",
-        token: "",
+        role: "STUDENT"
       });
       // 2) create student
       await studentService.create({

@@ -76,8 +76,9 @@ const StudentManagement: React.FC = () => {
     (async () => {
       setLoading(true);
       try {
-        const data = await studentService.getAll();
-        setStudents(Array.isArray(data) ? data : []);
+        const resp = await studentService.getAll();
+        console.log(resp);
+        setStudents(Array.isArray(resp) ? resp : []);
       } catch (err) {
         console.error(err);
         setError(FETCH_STUDENTS_EXCEPTION);
