@@ -295,7 +295,7 @@ const AttendanceManagement: React.FC = () => {
               Teacher: {selectedCoursePopup.teacher}
             </p>
             <ul className="text-gray-200 text-sm mb-4">
-              {selectedCoursePopup.records.map((record) => (
+              {(selectedCoursePopup.records as Attendance[]).map((record) => (
                 <li
                   key={record.id}
                   className="mb-1 flex justify-between items-center"
