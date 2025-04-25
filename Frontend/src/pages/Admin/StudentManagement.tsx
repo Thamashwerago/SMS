@@ -100,15 +100,7 @@ const StudentManagement: React.FC = () => {
     setError(null);
     setSuccess(null);
     setSelectedStudent(student);
-    setEditData({
-      firstName: student.firstName,
-      lastName: student.lastName,
-      dateOfBirth: student.dateOfBirth,
-      gender: student.gender,
-      address: student.address,
-      contactNumber: student.contactNumber,
-      nationality: student.nationality,
-    });
+    setEditData(student);
     setIsEditing(false);
   };
 
