@@ -13,18 +13,30 @@ export interface User {
   role: string;
 }
 
+export interface AddUser {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+}
+
 const userService = {
   /**
-   * getAll
-   * ------
-   * Retrieves all users.
-   * Endpoint: GET /users
-   *
+   * Retrieve all user records with pagination.
+   * 
+   * @param page - The page number (0-based index). Default is 0.
+   * @param size - The number of records per page. Default is 100.
    * @returns A promise resolving to an array of User objects.
+   * 
+   * Assumes the backend returns a paginated result with a `content` property.
    */
-  getAll: async (): Promise<User[]> => {
-    const response = await axiosInstance.get(`/user`);
-    return response.data;
+  getAll: async (page: number = 0, size: number = 100): Promise<User[]> => {
+    const response = await axiosInstance.get(`/user`, {
+      params: { page, size },
+    });
+    // Assuming the backend response structure is a Page with a "content" array.
+    return response.data.content;
   },
 
   /**
@@ -50,7 +62,7 @@ const userService = {
    * @param user - The user data (excluding the auto-generated id).
    * @returns A promise resolving to the newly created User object.
    */
-  create: async (user: Omit<User, 'id'>): Promise<User> => {
+  create: async (user: Omit<AddUser, 'id'>): Promise<AddUser> => {
     const response = await axiosInstance.post(`/user/signin`, user);
     return response.data;
   },

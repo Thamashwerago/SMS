@@ -4,7 +4,7 @@ import { ArrowLeft, X } from "lucide-react";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonButton from "../../components/common/Button";
-import userService, { User } from "../../services/userService";
+import userService, { AddUser } from "../../services/userService";
 import { validateAdminForm, AdminFormData } from "../../utils/validation";
 import {
   ADMIN_PAGE_TITLE,
@@ -68,12 +68,11 @@ const AddAdmin: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const newAdmin: Omit<User, 'id'> = {
+      const newAdmin: Omit<AddUser, 'id'> = {
         username: formData.name,
         email: formData.email,
         password: formData.password,
-        role: 'Admin',
-        token: '',
+        role: 'ADMIN'
       };
       await userService.create(newAdmin);
 
