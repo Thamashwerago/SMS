@@ -1,62 +1,84 @@
 import React, { useMemo } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import {
-  SIDEBAR_HEADER,
-  DEFAULT_ROLE,
-  NAV_LINKS,
-} from "../../constants/components/sidebarStrings";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import clsx from "clsx";
+import logo from "../../assets/logo.png";
+import { DEFAULT_ROLE, NAV_LINKS } from "../../constants/components/sidebarStrings";
+
+type NavLinkItem = (typeof NAV_LINKS)[keyof typeof NAV_LINKS][number] & {
+  Icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+};
 
 /**
  * Sidebar Component
- * -----------------
- * Renders the navigation sidebar with links based on the user role.
- * The user role is extracted from the first segment of the URL,
- * and if not found, defaults to 'student'.
- *
- * @returns JSX Element representing the sidebar.
+ * ---------------
+ * - Fixed width, always expanded
+ * - Logo on top with larger size
+ * - Sidebar spans full page height
+ * - Role-based navigation links
+ * - Footer with copyright
  */
 const Sidebar: React.FC = () => {
   const location = useLocation();
 
-  // Extract the user role from the URL (first segment) or use the default role.
+  // Determine current role from URL
   const role = useMemo(() => {
-    const segments = location.pathname.split("/").filter(Boolean);
-    return segments[0] || DEFAULT_ROLE;
+    const [first] = location.pathname.split("/").filter(Boolean);
+    return first || DEFAULT_ROLE;
   }, [location.pathname]);
 
-  // Retrieve the navigation links based on the current role.
-  const links = useMemo(
-    () => NAV_LINKS[role] || NAV_LINKS[DEFAULT_ROLE],
-    [role]
-  );
+  // Navigation links for this role
+  const links: NavLinkItem[] = NAV_LINKS[role] || NAV_LINKS[DEFAULT_ROLE];
 
   return (
-    <aside className="w-64 bg-gray-800 text-white min-h-screen p-6 shadow-lg">
-      {/* Sidebar Header */}
-      <header>
-        <h2 className="text-2xl font-bold mb-6 uppercase tracking-wide">
-          {SIDEBAR_HEADER}
-        </h2>
-      </header>
-      {/* Navigation Menu */}
-      <nav aria-label="Main Navigation">
-        <ul className="space-y-4">
-          {links.map((link) => (
-            <li key={link.name}>
+    <aside
+      aria-label="Application navigation"
+      className={clsx(
+        "flex flex-col bg-gray-800 text-white shadow-lg",
+        "w-64 min-h-screen"
+      )}
+    >
+      {/* Logo Header */}
+      <div className="flex items-center justify-center px-4 py-8 bg-gray-900">
+        <Link to={`/${role}/dashboard`}>
+          <img
+            src={logo}
+            alt="QuantumSync Labs Logo"
+            className="h-50 w-auto"
+          />
+        </Link>
+      </div>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 overflow-y-auto py-4">
+        <ul className="space-y-1">
+          {links.map(({ name, path, Icon }) => (
+            <li key={path}>
               <NavLink
-                to={`/${role}/${link.path}`}
+                to={`/${role}/${path}`}
                 className={({ isActive }) =>
-                  `block p-3 rounded transition-colors duration-200 ${
-                    isActive ? "bg-gray-700" : "hover:bg-gray-700"
-                  }`
+                  clsx(
+                    "flex items-center px-4 py-2 transition-colors duration-200",
+                    isActive
+                      ? "bg-gray-700 border-l-4 border-indigo-500"
+                      : "hover:bg-gray-700",
+                    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  )
                 }
               >
-                {link.name}
+                {Icon && <Icon className="h-6 w-6 flex-shrink-0" />}
+                <span className="ml-3 whitespace-nowrap">{name}</span>
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
+
+      {/* Footer */}
+      <div className="px-4 py-3 bg-gray-900 text-center">
+        <p className="text-xs text-gray-400">
+          © {new Date().getFullYear()} QuantumSync Labs
+        </p>
+      </div>
     </aside>
   );
 };

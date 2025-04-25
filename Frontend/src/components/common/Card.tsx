@@ -1,19 +1,10 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, KeyboardEvent } from 'react';
 import {
   CARD_BASE_CLASS,
   CARD_TITLE_CLASS,
   CARD_VALUE_CLASS,
-} from "../../constants/components/cardStrings";
+} from '../../constants/components/cardStrings';
 
-/**
- * CardProps - Defines the properties for the Card component.
- * @property title - The title text displayed on the card.
- * @property value - The main value or metric to display.
- * @property icon - An optional icon to display alongside the title.
- * @property className - Additional custom class names.
- * @property onClick - Optional click handler for the card.
- * @property children - Optional additional content to render below the value.
- */
 export interface CardProps {
   title: string;
   value: string | number;
@@ -21,63 +12,97 @@ export interface CardProps {
   className?: string;
   onClick?: () => void;
   children?: ReactNode;
+  loading?: boolean;
+  tooltip?: string;
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger';
 }
 
-/**
- * Card Component
- * ----------------
- * A reusable, accessible card component that displays a title, value,
- * and optionally an icon and additional children content.
- *
- * It applies a consistent, futuristic UI style using Tailwind CSS classes.
- *
- * @param {CardProps} props - Component properties.
- * @returns A styled card element.
- */
-const Card: React.FC<CardProps> = React.memo(
-  ({ title, value, icon, className = "", onClick, children }: CardProps) => {
-    // Determine the cursor style and accessibility properties when clickable.
-    const isClickable = Boolean(onClick);
-    const cursorStyle = isClickable ? "cursor-pointer" : "cursor-default";
+const variantBg: Record<string, string> = {
+  default: 'bg-white dark:bg-gray-800',
+  primary: 'bg-indigo-50 dark:bg-indigo-900',
+  success: 'bg-green-50 dark:bg-green-900',
+  warning: 'bg-yellow-50 dark:bg-yellow-900',
+  danger: 'bg-red-50 dark:bg-red-900',
+};
 
-    // Handle keyboard events for accessibility
-    const handleKeyDown = (event: React.KeyboardEvent) => {
-      if (
-        isClickable &&
-        onClick &&
-        (event.key === "Enter" || event.key === " ")
-      ) {
-        event.preventDefault();
-        onClick();
+const Card: React.FC<CardProps> = React.memo(
+  ({
+    title,
+    value,
+    icon,
+    className = '',
+    onClick,
+    children,
+    loading = false,
+    tooltip,
+    variant = 'default',
+  }: CardProps) => {
+    const isClickable = Boolean(onClick);
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+      if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        onClick?.();
       }
     };
 
+    // Build up all the classes in one place
+    const baseClasses = [
+      CARD_BASE_CLASS,
+      variantBg[variant],
+      'rounded-2xl shadow-sm',
+      'transition-transform duration-200',
+      isClickable
+        ? 'cursor-pointer hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+        : '',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    // 1) Loading state: skeleton placeholder
+    if (loading) {
+      return (
+        <div className={`${baseClasses} animate-pulse`}>
+          <div className="h-5 bg-gray-300 rounded w-3/4 mb-2" />
+          <div className="h-8 bg-gray-300 rounded w-1/2 mb-2" />
+          {children && <div className="h-4 bg-gray-300 rounded w-full" />}
+        </div>
+      );
+    }
+
+    // 2) Actual content
+    const content = (
+      <>
+        <div className="flex items-center justify-between mb-2">
+          <p className={CARD_TITLE_CLASS}>{title}</p>
+          {icon && <span className="ml-2">{icon}</span>}
+        </div>
+        <p
+          className={CARD_VALUE_CLASS}
+          title={tooltip ?? (typeof value === 'string' ? value : undefined)}
+        >
+          {value}
+        </p>
+        {children && <div className="mt-4">{children}</div>}
+      </>
+    );
+
+    // 3) Render as <button> if clickable, otherwise <div>
     return isClickable ? (
       <button
         type="button"
         onClick={onClick}
-        className={`${CARD_BASE_CLASS} ${cursorStyle} ${className} text-left w-full`}
         onKeyDown={handleKeyDown}
+        className={baseClasses}
       >
-        <div className="flex items-center justify-between">
-          <p className={CARD_TITLE_CLASS}>{title}</p>
-          {icon && <div className="ml-2">{icon}</div>}
-        </div>
-        <p className={CARD_VALUE_CLASS}>{value}</p>
-        {children && <div className="mt-4">{children}</div>}
+        {content}
       </button>
     ) : (
-      <div className={`${CARD_BASE_CLASS} ${className}`}>
-        <div className="flex items-center justify-between">
-          <p className={CARD_TITLE_CLASS}>{title}</p>
-          {icon && <div className="ml-2">{icon}</div>}
-        </div>
-        <p className={CARD_VALUE_CLASS}>{value}</p>
-        {children && <div className="mt-4">{children}</div>}
-      </div>
+      <div className={baseClasses}>{content}</div>
     );
   }
 );
 
-Card.displayName = "Card";
+Card.displayName = 'Card';
 export default Card;

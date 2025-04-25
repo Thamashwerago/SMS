@@ -38,7 +38,7 @@ instance.interceptors.response.use(
       }, 4000); // 3 seconds
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
   }
 );
 

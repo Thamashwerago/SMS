@@ -1,15 +1,11 @@
-// src/pages/Admin/Dashboard.tsx
-
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import Card from "../../components/common/Card";
 import Chart from "../../components/common/Chart";
 import CommonTable, { Column } from "../../components/common/Table";
-import Button from "../../components/common/Button";
-import CourseCard, {
-  AggregatedCourseAttendance,
-} from "../../components/common/CourseCard";
+import CommonButton from "../../components/common/Button";
+import CourseCard, { AggregatedCourseAttendance } from "../../components/common/CourseCard";
 
 // Service modules
 import teacherService from "../../services/teacherService";
@@ -32,7 +28,6 @@ const STRINGS = {
   UPCOMING_CLASSES: "Upcoming Classes",
   FEATURED_COURSES: "Featured Courses",
   NO_DATA: "No data available.",
-
   ERROR_FETCHING_STUDENTS: "Error fetching students data",
   ERROR_FETCHING_TEACHERS: "Error fetching teachers data",
   ERROR_FETCHING_COURSES: "Error fetching courses data",
@@ -50,12 +45,8 @@ interface TimetableEntry {
   classroom: string;
 }
 
-interface Course {
-  id: number;
-  name: string;
-}
+interface Course { id: number; name: string }
 
-/** Columns for Upcoming Classes table */
 const timetableColumns: Column<TimetableEntry>[] = [
   { header: "Start Time", accessor: "startTime" },
   { header: "End Time", accessor: "endTime" },
@@ -63,247 +54,205 @@ const timetableColumns: Column<TimetableEntry>[] = [
   { header: "Classroom", accessor: "classroom" },
 ];
 
-/** Transforms a Course into the shape CourseCard expects */
-const transformCourseToCourseCardData = (
-  course: Course
-): AggregatedCourseAttendance => ({
+const transformCourseToCard = (course: Course): AggregatedCourseAttendance => ({
   courseId: course.id,
   courseName: course.name,
-  teacher: "Not Assigned",
+  teacher: "-",
   totalStudents: 0,
   present: 0,
-  updatedAt: "N/A",
+  updatedAt: new Date().toISOString(),
   records: [],
 });
 
 const Dashboard: React.FC = () => {
-  // Loading & error state
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Core metrics
   const [totalStudents, setTotalStudents] = useState(0);
   const [totalTeachers, setTotalTeachers] = useState(0);
   const [totalCourses, setTotalCourses] = useState(0);
   const [todaysClasses, setTodaysClasses] = useState(0);
-  const [averageAttendance, setAverageAttendance] = useState(0);
   const [attendanceCounts, setAttendanceCounts] = useState({ present: 0, absent: 0 });
 
-  // Detailed data
   const [timetableEntries, setTimetableEntries] = useState<TimetableEntry[]>([]);
   const [coursesList, setCoursesList] = useState<Course[]>([]);
 
-  /**
-   * refreshData
-   * Fetch all dashboard data, each in its own try/catch for granular error handling.
-   */
   const refreshData = useCallback(async () => {
     setLoading(true);
     setError(null);
-
-    // Students
     try {
       const studentCount = await studentService.count();
-      setTotalStudents(studentCount);
-    } catch (e) {
-      console.error(e);
-      setError(STRINGS.ERROR_FETCHING_STUDENTS);
-    }
-
-    // Teachers
-    try {
       const teacherCount = await teacherService.count();
-      setTotalTeachers(teacherCount);
-    } catch (e) {
-      console.error(e);
-      setError(STRINGS.ERROR_FETCHING_TEACHERS);
-    }
-
-    // Courses
-    try {
       const courseCount = await courseService.count();
       const courses = await courseService.getAll();
+      const today = new Date().toISOString().slice(0, 10);
+      const allEntries = await timetableService.getAll();
+      const todays = allEntries.filter((e) => e.date === today);
+      const attendanceSummary = await attendanceService.getAttendanceSummary();
+
+      setTotalStudents(studentCount);
+      setTotalTeachers(teacherCount);
       setTotalCourses(courseCount);
       setCoursesList(courses);
-    } catch (e) {
-      console.error(e);
-      setError(STRINGS.ERROR_FETCHING_COURSES);
-    }
-
-    // Today's timetable
-    try {
-      const todayCourse = await timetableService.Count();
-      const all = await timetableService.getAll();
-      const today = new Date().toISOString().slice(0, 10);
-      const todays = all.filter((e) => e.date === today);
-      setTodaysClasses(todayCourse);
+      setTodaysClasses(todays.length);
       setTimetableEntries(todays);
-    } catch (e) {
-      console.error(e);
-      setError(STRINGS.ERROR_FETCHING_TIMETABLE);
-    }
-
-    // Attendance
-    try {
-      const records = await attendanceService.getAttendanceSummary();
       setAttendanceCounts({
-        present: records.reduce((sum, record) => sum + (record.presentCount || 0), 0),
-        absent: records.reduce((sum, record) => sum + (record.absentCount || 0), 0),
+        present: attendanceSummary.reduce((s, r) => s + (r.presentCount || 0), 0),
+        absent: attendanceSummary.reduce((s, r) => s + (r.absentCount || 0), 0),
       });
-      setAverageAttendance(records.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0) / records.length);
     } catch (e) {
       console.error(e);
-      setError(STRINGS.ERROR_FETCHING_ATTENDANCE);
+      setError("Failed to load dashboard data.");
     }
-
     setLoading(false);
   }, []);
 
-  // Load once
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [refreshData]);
 
-  const metrics = {
-    totalStudents,
-    totalTeachers,
-    totalCourses,
-    todaysClasses,
-    averageAttendance,
-  };
+  // Metrics tiles
+  const metrics = useMemo(
+    () => [
+      { title: STRINGS.TOTAL_STUDENTS, value: totalStudents, icon: "👨‍🎓" },
+      { title: STRINGS.TOTAL_TEACHERS, value: totalTeachers, icon: "👩‍🏫" },
+      { title: STRINGS.TOTAL_COURSES, value: totalCourses, icon: "📚" },
+      { title: STRINGS.TODAYS_CLASSES, value: todaysClasses, icon: "🗓️" },
+    ],
+    [totalStudents, totalTeachers, totalCourses, todaysClasses]
+  );
 
-  // Bar chart config
+  // Define color palettes
+  const barColors = useMemo(
+    () => ["#4F46E5", "#10B981", "#F59E0B"],
+    []
+  );
+  const pieColors = useMemo(
+    () => ["#3B82F6", "#EF4444"],
+    []
+  );
+
+  // Bar chart data with colors
   const barChartData = useMemo(
     () => ({
       labels: ["Students", "Teachers", "Courses"],
       datasets: [
         {
-          label: "Count",
+          label: STRINGS.INSTITUTION_OVERVIEW,
           data: [totalStudents, totalTeachers, totalCourses],
+          backgroundColor: barColors,
+          borderColor: barColors,
+          borderWidth: 1,
         },
       ],
     }),
-    [totalStudents, totalTeachers, totalCourses]
-  );
-  const barChartOptions = useMemo(
-    () => ({
-      responsive: true,
-      plugins: {
-        legend: { labels: { color: "white" } },
-        title: { display: true, text: STRINGS.INSTITUTION_OVERVIEW, color: "white" },
-      },
-      scales: {
-        x: { ticks: { color: "white" } },
-        y: { ticks: { color: "white" } },
-      },
-    }),
-    []
+    [totalStudents, totalTeachers, totalCourses, barColors]
   );
 
-  // Pie chart config
+  // Pie chart data with slice colors
   const pieChartData = useMemo(
     () => ({
       labels: ["Present", "Absent"],
       datasets: [
         {
-          label: STRINGS.ATTENDANCE_DISTRIBUTION,
           data: [attendanceCounts.present, attendanceCounts.absent],
+          backgroundColor: pieColors,
+          hoverOffset: 4,
         },
       ],
     }),
-    [attendanceCounts]
-  );
-  const pieChartOptions = useMemo(
-    () => ({
-      responsive: true,
-      plugins: {
-        legend: { labels: { color: "white" } },
-        title: { display: true, text: STRINGS.ATTENDANCE_DISTRIBUTION, color: "white" },
-      },
-    }),
-    []
+    [attendanceCounts, pieColors]
   );
 
-  // Featured courses (top 3)
   const featuredCourses = useMemo(
-    () => coursesList.slice(0, 3).map(transformCourseToCourseCardData),
+    () => coursesList.slice(0, 3).map(transformCourseToCard),
     [coursesList]
   );
 
-  return ( 
-    <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
+  return (
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Navbar />
-        <main className="p-8">
+        <main className="p-6 space-y-8">
+          <header className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{STRINGS.DASHBOARD_TITLE}</h1>
+            <CommonButton
+              label={STRINGS.REFRESH_DATA}
+              onClick={refreshData}
+              isLoading={loading}
+              variant="primary"
+              size="md"
+              leftIcon={
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6" />
+                </svg>
+              }
+            />
+          </header>
 
-          {/* Error Banner */}
           {error && (
-            <div className="mb-4 p-4 bg-red-600 text-white rounded">
+            <div className="p-4 bg-red-600 rounded text-white" role="alert">
               {error}
             </div>
           )}
 
-          {/* Loading State */}
-          {loading ? (
-            <div className="flex h-64 items-center justify-center text-white">
-              Loading dashboard data...
+          {/* Metrics */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {metrics.map((m) => (
+              <Card
+                key={m.title}
+                title={m.title}
+                value={m.value}
+                icon={m.icon}
+                loading={loading}
+              />
+            ))}
+          </section>
+
+          {/* Charts */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Chart
+              type="bar"
+              data={barChartData}
+              options={{}}
+              title={STRINGS.INSTITUTION_OVERVIEW}
+              loading={loading}
+              className="rounded-lg"
+            />
+            <Chart
+              type="pie"
+              data={pieChartData}
+              options={{}}
+              title={STRINGS.ATTENDANCE_DISTRIBUTION}
+              loading={loading}
+              className="rounded-lg"
+            />
+          </section>
+
+          {/* Upcoming Classes */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">{STRINGS.UPCOMING_CLASSES}</h2>
+            <CommonTable
+              columns={timetableColumns}
+              data={timetableEntries}
+              loading={loading}
+              noDataMessage={STRINGS.NO_DATA}
+            />
+          </section>
+
+          {/* Featured Courses */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">{STRINGS.FEATURED_COURSES}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCourses.length > 0 ? (
+                featuredCourses.map((c) => (
+                  <CourseCard key={c.courseId} course={c} onClick={() => {}} />
+                ))
+              ) : (
+                <p>{STRINGS.NO_DATA}</p>
+              )}
             </div>
-          ) : (
-            <>
-              {/* Overview Cards */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                <Card title={STRINGS.TOTAL_STUDENTS} value={metrics.totalStudents} icon="👨‍🎓" />
-                <Card title={STRINGS.TOTAL_TEACHERS} value={metrics.totalTeachers} icon="👩‍🏫" />
-                <Card title={STRINGS.TOTAL_COURSES} value={metrics.totalCourses} icon="📚" />
-                <Card title={STRINGS.TODAYS_CLASSES} value={metrics.todaysClasses} icon="🗓️" />
-                <Card title={STRINGS.AVG_ATTENDANCE} value={`${metrics.averageAttendance}%`} icon="✅" />
-              </section>
-
-              {/* Refresh Button */}
-              <div className="flex justify-end mb-6">
-                <Button
-                  label={STRINGS.REFRESH_DATA}
-                  onClick={refreshData}
-                  isLoading={loading}
-                />
-              </div>
-
-              {/* Charts */}
-              <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div className="bg-black bg-opacity-50 border border-indigo-500 p-6 rounded shadow">
-                  <Chart type="bar" data={barChartData} options={barChartOptions} />
-                </div>
-                <div className="bg-black bg-opacity-50 border border-indigo-500 p-6 rounded shadow">
-                  <Chart type="pie" data={pieChartData} options={pieChartOptions} />
-                </div>
-              </section>
-
-              {/* Upcoming Classes */}
-              <section className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-4">{STRINGS.UPCOMING_CLASSES}</h2>
-                {timetableEntries.length > 0 ? (
-                  <CommonTable columns={timetableColumns} data={timetableEntries} />
-                ) : (
-                  <p className="text-white">{STRINGS.NO_DATA}</p>
-                )}
-              </section>
-
-              {/* Featured Courses */}
-              <section className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-4">{STRINGS.FEATURED_COURSES}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {featuredCourses.length > 0 ? (
-                    featuredCourses.map((c) => (
-                      <CourseCard key={c.courseId} course={c} onClick={() => {}} />
-                    ))
-                  ) : (
-                    <p className="text-white">{STRINGS.NO_DATA}</p>
-                  )}
-                </div>
-              </section>
-            </>
-          )}
+          </section>
         </main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Plus, Search, X, Edit3, Trash2 } from "lucide-react";
 import Sidebar from "../../components/common/Sidebar";
 import Navbar from "../../components/common/Navbar";
 import CommonTable, { Column } from "../../components/common/Table";
@@ -9,7 +10,6 @@ import {
   STUDENT_MANAGEMENT_HEADING,
   STUDENT_SEARCH_PLACEHOLDER,
   STUDENT_EDIT_BUTTON_LABEL,
-  STUDENT_DELETE_BUTTON_LABEL,
   STUDENT_SAVE_BUTTON_LABEL,
   STUDENT_CANCEL_BUTTON_LABEL,
   STUDENT_CLOSE_BUTTON_LABEL,
@@ -21,9 +21,6 @@ import {
   DELETE_STUDENT_EXCEPTION,
 } from "../../constants/exceptionMessages";
 
-/**
- * Student interface represents a student's data.
- */
 interface Student {
   id: number;
   userId: number;
@@ -36,419 +33,256 @@ interface Student {
   nationality: string;
 }
 
-/**
- * StudentManagement Component
- * -----------------------------
- * Manages the student data by retrieving it from the backend,
- * providing a searchable, sortable table, and allowing updates and deletion.
- *
- * Utilizes the CommonTable and CommonButton reusable components.
- */
-const StudentManagement: React.FC = () => {
-  const navigate = useNavigate();
+interface StudentActionsProps {
+  student: Student;
+  onEdit: (student: Student) => void;
+  onDelete: (id: number) => void;
+}
 
-  // State for storing student data fetched from backend.
-  const [students, setStudents] = useState<Student[]>([]);
-  // State for storing search query.
-  const [searchQuery, setSearchQuery] = useState("");
-  // States for editing a selected student's information.
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editData, setEditData] = useState<{
-    firstName: string;
-    lastName: string;
-    contactNumber: string;
-  }>({
-    firstName: "",
-    lastName: "",
-    contactNumber: "",
-  });
-  // State for error messages.
-  const [error, setError] = useState<string | null>(null);
-  // State for success messages.
-  const [success, setSuccess] = useState<string | null>(null);
-
-  /**
-   * fetchStudents
-   * -------------
-   * Retrieves student data from the backend using studentService.
-   * In case of error, sets an error message.
-   */
-  const fetchStudents = async () => {
-    try {
-      const data = await studentService.getAll();
-      // Map the service's Student type to match our component's Student interface
-      const mappedStudents: Student[] = data.map((student) => ({
-        id: student.id,
-        userId: student.userId,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        dateOfBirth: student.dateOfBirth,
-        gender: student.gender,
-        address: student.address,
-        contactNumber: student.contactNumber,
-        nationality: student.nationality,
-      }));
-      setStudents(mappedStudents);
-    } catch (err) {
-      console.error("Error fetching students:", err);
-      setError(FETCH_STUDENTS_EXCEPTION);
-    }
-  };
-
-  // Fetch student data when the component mounts.
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  /**
-   * handleSearchChange
-   * ------------------
-   * Updates the search query state as the user types.
-   */
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  /**
-   * filteredStudents
-   * ----------------
-   * Computes a filtered list of students based on the search query.
-   */
-  const filteredStudents = useMemo(() => {
-    return students.filter(
-      (student) =>
-        student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.gender.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.nationality.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [students, searchQuery]);
-
-  /**
-   * StudentActions Component
-   * ------------------------
-   * Represents the action buttons for each student row.
-   */
-  interface StudentActionsProps {
-    student: Student;
-    onEdit: (student: Student) => void;
-    onDelete: (id: number) => void;
-  }
-
-  const StudentActions: React.FC<StudentActionsProps> = ({
-    student,
-    onEdit,
-    onDelete,
-  }) => (
+const StudentActions: React.FC<StudentActionsProps> = ({ student, onEdit, onDelete }) => {
+  return (
     <div className="flex space-x-2">
-      <CommonButton
-        label={STUDENT_EDIT_BUTTON_LABEL}
-        onClick={() => onEdit(student)}
-        className="bg-blue-600 hover:bg-blue-700"
+      <CommonButton 
+        size="sm" 
+        variant="primary" 
+        leftIcon={<Edit3 />} 
+        label="Edit" 
+        onClick={() => onEdit(student)} 
       />
-      <CommonButton
-        label={STUDENT_DELETE_BUTTON_LABEL}
-        onClick={() => onDelete(student.id)}
-        className="bg-red-600 hover:bg-red-700"
+      <CommonButton 
+        size="sm" 
+        variant="danger" 
+        leftIcon={<Trash2 />} 
+        label="Delete" 
+        onClick={() => onDelete(student.id)} 
       />
     </div>
   );
+};
 
-  /**
-   * columns
-   * -------
-   * Defines the columns for the CommonTable component.
-   */
-  const columns: Column<Student>[] = useMemo(
-    () => [
-      { header: "Student ID", accessor: "id" },
-      {
-        header: "Full Name",
-        accessor: (row: Student) => `${row.firstName} ${row.lastName}`,
-      },
-      { header: "Gender", accessor: "gender" },
-      { header: "Nationality", accessor: "nationality" },
-      {
-        header: "Actions",
-        accessor: (row: Student) => (
-          <StudentActions
-            student={row}
-            onEdit={handleRowClick}
-            onDelete={handleDelete}
-          />
-        ),
-      },
-    ],
-    []
+const StudentManagement: React.FC = () => {
+  const navigate = useNavigate();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ firstName: "", lastName: "", contactNumber: "" });
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Fetch students
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await studentService.getAll();
+        setStudents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setError(FETCH_STUDENTS_EXCEPTION);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // Filter by search
+  const filteredStudents = useMemo(
+    () =>
+      students.filter((s) =>
+        [s.firstName, s.lastName, s.gender, s.nationality]
+          .some((field) => field.toLowerCase().includes(searchQuery.toLowerCase()))
+      ),
+    [students, searchQuery]
   );
 
-  /**
-   * handleRowClick
-   * --------------
-   * Opens the modal for editing a student's details.
-   * @param student - The student selected for editing.
-   */
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value);
+  const clearSearch = () => setSearchQuery("");
+  const goAdd = () => navigate('/admin/add-student');
+
   const handleRowClick = (student: Student) => {
+    setError(null);
+    setSuccess(null);
     setSelectedStudent(student);
-    setEditData({
-      firstName: student.firstName,
-      lastName: student.lastName,
-      contactNumber: student.contactNumber,
-    });
+    setEditData({ firstName: student.firstName, lastName: student.lastName, contactNumber: student.contactNumber });
     setIsEditing(false);
   };
 
-  /**
-   * handleEditChange
-   * ----------------
-   * Updates the editData state as the user types in the edit form.
-   */
   const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setEditData(prev => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * handleEditClick
-   * ---------------
-   * Enables the editing mode for the student details modal.
-   */
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
+  const handleEditClick = () => setIsEditing(true);
 
-  /**
-   * handleSave
-   * ----------
-   * Saves the edited student details using studentService.update.
-   * On success, refreshes the student data.
-   */
   const handleSave = async () => {
-    if (selectedStudent) {
-      try {
-        await studentService.update(selectedStudent.id, {
-          firstName: editData.firstName,
-          lastName: editData.lastName,
-          contactNumber: editData.contactNumber,
-        });
-        setSuccess("Student updated successfully.");
-        setSelectedStudent(null);
-        fetchStudents();
-      } catch (err) {
-        console.error("Error updating student:", err);
-        setError(UPDATE_STUDENT_EXCEPTION);
-      }
+    if (!selectedStudent) return;
+    setError(null);
+    try {
+      await studentService.update(selectedStudent.id, editData);
+      setSuccess('Updated successfully');
+      setSelectedStudent(null);
+      const refreshed = await studentService.getAll();
+      setStudents(Array.isArray(refreshed) ? refreshed : []);
+    } catch (err) {
+      console.error(err);
+      setError(UPDATE_STUDENT_EXCEPTION);
     }
   };
 
-  /**
-   * handleDelete
-   * ------------
-   * Deletes a student using studentService.delete and refreshes the list.
-   * @param id - The student's ID.
-   */
   const handleDelete = async (id: number) => {
+    setError(null);
     try {
       await studentService.delete(id);
-      setSuccess("Student deleted successfully.");
-      fetchStudents();
+      setSuccess('Deleted successfully');
+      const refreshed = await studentService.getAll();
+      setStudents(Array.isArray(refreshed) ? refreshed : []);
     } catch (err) {
-      console.error("Error deleting student:", err);
+      console.error(err);
       setError(DELETE_STUDENT_EXCEPTION);
     }
   };
 
-  /**
-   * handleCancelEdit
-   * ----------------
-   * Cancels the editing process and resets the editData state.
-   */
   const handleCancelEdit = () => {
-    setIsEditing(false);
     if (selectedStudent) {
-      setEditData({
-        firstName: selectedStudent.firstName,
-        lastName: selectedStudent.lastName,
-        contactNumber: selectedStudent.contactNumber,
-      });
+      setEditData({ firstName: selectedStudent.firstName, lastName: selectedStudent.lastName, contactNumber: selectedStudent.contactNumber });
     }
+    setIsEditing(false);
+    setError(null);
   };
 
-  /**
-   * handleClose
-   * -----------
-   * Closes the student details modal.
-   */
-  const handleClose = () => {
-    setSelectedStudent(null);
-  };
+  const handleClose = () => setSelectedStudent(null);
+
+  // define which Student fields are editable so we can index them with proper types
+  const editableFields = ['firstName', 'lastName', 'contactNumber'] as const;
+
+  const columns: Column<Student>[] = useMemo(() => [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Name', accessor: row => `${row.firstName} ${row.lastName}` },
+    { header: 'Gender', accessor: 'gender' },
+    { header: 'Nationality', accessor: 'nationality' },
+    { header: 'Actions', accessor: row => (
+        <StudentActions 
+          student={row} 
+          onEdit={handleRowClick} 
+          onDelete={handleDelete} 
+        />
+      )
+    }
+  ], []);
 
   return (
-    <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
-      {/* Sidebar Component */}
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-black text-white">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        {/* Navbar Component */}
         <Navbar />
-        <main className="p-8">
-          {/* Header Section with Search and Add Student Button */}
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
+        <main className="p-8 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
               {STUDENT_MANAGEMENT_HEADING}
             </h1>
-            <div className="flex items-center mt-4 sm:mt-0">
-              <input
-                type="text"
-                placeholder={STUDENT_SEARCH_PLACEHOLDER}
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-l-xl focus:outline-none text-white placeholder-gray-400"
-              />
+            <div className="flex items-center mt-4 sm:mt-0 space-x-2">
+              <div className="relative">
+                <Search className="absolute inset-y-0 left-0 pl-3 h-11 w-7 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={STUDENT_SEARCH_PLACEHOLDER}
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="pl-10 pr-3 py-2 bg-gray-800 border border-indigo-500 rounded-l-md focus:outline-none focus:ring focus:ring-indigo-500"
+                />
+              </div>
+              {searchQuery && (
+                <CommonButton size="sm" variant="secondary" leftIcon={<X />} label="Clear" onClick={clearSearch} />
+              )}
               <CommonButton
+                size="md"
+                variant="primary"
                 label={STUDENT_ADD_BUTTON_LABEL}
-                onClick={() => navigate("/admin/add-student")}
-                className="rounded-r-xl bg-indigo-600 hover:bg-indigo-700"
+                leftIcon={<Plus />}
+                onClick={goAdd}
               />
             </div>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-500 bg-opacity-50 border border-red-700 rounded-xl text-white">
-              {error}
-            </div>
+          {/* Messages */}
+          {(error || success) && (
+            <div className={`p-4 rounded-xl text-white ${error ? 'bg-red-600' : 'bg-green-600'}`}> {error ?? success} </div>
           )}
 
-          {/* Success Message */}
-          {success && (
-            <div className="mb-4 p-4 bg-green-500 bg-opacity-50 border border-green-700 rounded-xl text-white">
-              {success}
-            </div>
-          )}
+          {/* Table Container */}
+          <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-lg shadow overflow-hidden">
+            <CommonTable
+              columns={columns}
+              data={filteredStudents}
+              loading={loading}
+              initialSortColumn="firstName"
+              initialSortDirection="asc"
+            />
+          </div>
 
-          {/* Students Table rendered with the CommonTable component */}
-          <CommonTable
-            columns={columns}
-            data={filteredStudents}
-            initialSortColumn="firstName"
-            initialSortDirection="asc"
-            onRowClick={handleRowClick}
-          />
-
-          {/* Student Details Modal */}
+          {/* Slide-over */}
           {selectedStudent && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-              <div className="bg-gray-800 p-8 rounded-xl border border-indigo-500 shadow-xl max-w-lg w-full mx-4 animate-fadeIn max-h-[80vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  Student Details
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Student ID:
-                    </span>
-                    <p className="text-gray-300">{selectedStudent.id}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      User ID:
-                    </span>
-                    <p className="text-gray-300">{selectedStudent.userId}</p>
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      First Name:
-                    </span>
+            <div className="fixed inset-0 flex z-50">
+              <button
+                className="absolute inset-0 bg-black bg-opacity-70 border-0"
+                onClick={handleClose}
+                aria-label="Close student details"
+              />
+              <aside className="relative ml-auto w-full max-w-md h-full bg-gray-800 p-6 shadow-xl transform transition-transform duration-300 ease-out">
+                <button
+                  onClick={handleClose}
+                  aria-label="Close"
+                  className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full hover:bg-gray-600 focus:outline-none focus:ring focus:ring-indigo-500"
+                >
+                  <X className="h-5 w-5 text-gray-300" />
+                </button>
+                {editableFields.map((field) => (
+                  <div key={field} className="mb-4">
+                    <label
+                      htmlFor={`edit-${field}`}
+                      className="block text-sm font-semibold text-gray-200 mb-1 capitalize"
+                    >
+                      {field.replace(/([A-Z])/g, ' $1')}
+                    </label>
                     {isEditing ? (
                       <input
-                        type="text"
-                        name="firstName"
-                        value={editData.firstName}
+                        id={`edit-${field}`}
+                        name={field}
+                        value={editData[field]}
                         onChange={handleEditChange}
-                        placeholder="Enter first name"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
+                        placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+                        aria-label={field.replace(/([A-Z])/g, ' $1')}
+                        className="w-full px-3 py-2 bg-gray-700 border border-indigo-500 rounded focus:outline-none focus:ring focus:ring-indigo-500 text-white"
                       />
                     ) : (
-                      <p className="text-gray-300">
-                        {selectedStudent.firstName}
-                      </p>
+                      <p className="text-gray-300">{selectedStudent[field]}</p>
                     )}
                   </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Last Name:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={editData.lastName}
-                        onChange={handleEditChange}
-                        placeholder="Enter last name"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">
-                        {selectedStudent.lastName}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Contact Number:
-                    </span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="contactNumber"
-                        value={editData.contactNumber}
-                        onChange={handleEditChange}
-                        placeholder="Enter contact number"
-                        className="w-full px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded-md focus:outline-none text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-300">
-                        {selectedStudent.contactNumber}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-white text-lg font-semibold">
-                      Nationality:
-                    </span>
-                    <p className="text-gray-300">
-                      {selectedStudent.nationality}
-                    </p>
-                  </div>
+                ))}
+                <div className="mb-4">
+                  <label
+                    htmlFor="display-nationality"
+                    className="block text-sm font-semibold text-gray-200 mb-1"
+                  >
+                    Nationality
+                  </label>
+                  <p id="display-nationality" className="text-gray-300">{selectedStudent.nationality}</p>
                 </div>
-                <div className="mt-6 flex justify-end space-x-4">
+                <div className="mt-6 flex justify-end space-x-2">
                   {isEditing ? (
                     <>
-                      <CommonButton
-                        label={STUDENT_SAVE_BUTTON_LABEL}
-                        onClick={handleSave}
-                        className="bg-green-600 hover:bg-green-700"
-                      />
-                      <CommonButton
-                        label={STUDENT_CANCEL_BUTTON_LABEL}
-                        onClick={handleCancelEdit}
-                        className="bg-yellow-600 hover:bg-yellow-700"
-                      />
+                      <CommonButton size="sm" variant="primary" label={STUDENT_SAVE_BUTTON_LABEL} onClick={handleSave} />
+                      <CommonButton size="sm" variant="secondary" label={STUDENT_CANCEL_BUTTON_LABEL} onClick={handleCancelEdit} />
                     </>
                   ) : (
-                    <CommonButton
-                      label={STUDENT_EDIT_BUTTON_LABEL}
-                      onClick={handleEditClick}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    />
+                    <CommonButton size="sm" variant="primary" leftIcon={<Edit3 />} label={STUDENT_EDIT_BUTTON_LABEL} onClick={handleEditClick} />
                   )}
-                  <CommonButton
-                    label={STUDENT_CLOSE_BUTTON_LABEL}
-                    onClick={handleClose}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  />
+                  <CommonButton size="sm" variant="secondary" label={STUDENT_CLOSE_BUTTON_LABEL} onClick={handleClose} />
                 </div>
-              </div>
+              </aside>
             </div>
           )}
         </main>
@@ -457,4 +291,4 @@ const StudentManagement: React.FC = () => {
   );
 };
 
-export default StudentManagement;
+export default React.memo(StudentManagement);
