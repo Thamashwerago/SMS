@@ -20,5 +20,6 @@ export const TEACHER_PROFILE_STRINGS = {
     ERROR_NO_USER_ID: "No teacher ID found. Please log in again.",
     ERROR_FETCH_TEACHER: "Failed to fetch teacher details.",
     ERROR_FETCH_USER: "Failed to fetch user account details.",
+    ERROR_FETCH_PROFILE: "Failed to fetch profile data.",
     NO_DATA: "No profile data available.",
   };

@@ -20,5 +20,8 @@ export const TEACHER_COURSES_STRINGS = {
     ERROR_NO_TEACHER_ID: "No teacher ID found. Please log in again.",
     ERROR_FETCH_ASSIGNMENTS: "Failed to fetch course assignments.",
     ERROR_FETCH_COURSE: "Failed to fetch course details.",
+
+    SEARCH_PLACEHOLDER: "Search by course name or code",
+    CREDITS_LABEL: "Credits",
   };
   

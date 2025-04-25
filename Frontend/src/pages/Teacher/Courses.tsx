@@ -13,7 +13,7 @@ import Navbar from "../../components/common/Navbar";
 import Card from "../../components/common/Card";
 import CommonTable, { Column } from "../../components/common/Table";
 import Chart from "../../components/common/Chart";
-import Button from "../../components/common/Button";
+import CommonButton from "../../components/common/Button";
 
 // Services
 import courseService, {
@@ -22,121 +22,102 @@ import courseService, {
 } from "../../services/courseService";
 
 // Strings
-import { TEACHER_COURSES_STRINGS } from "../../constants/teacher/teacherCoursesConsts";
+import { TEACHER_COURSES_STRINGS as STR } from "../../constants/teacher/teacherCoursesConsts";
 
-/**
- * Teacher Courses Page
- * ---------------------
- * Fetches and displays courses assigned to the logged-in teacher.
- * Includes a credits distribution chart, a table of courses, and refresh functionality.
- */
 const Courses: React.FC = () => {
-  // State for loading, errors, and data
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
 
-  /**
-   * fetchCourses
-   * ------------
-   * 1. Get teacherId from sessionStorage
-   * 2. Fetch course assignments and filter by teacherId
-   * 3. Fetch each course detail
-   */
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // 1. teacherId
-    const teacherId = sessionStorage.getItem("userId");
-    if (!teacherId) {
-      setError(TEACHER_COURSES_STRINGS.ERROR_NO_TEACHER_ID);
+    const tidStr = sessionStorage.getItem("userId");
+    if (!tidStr) {
+      setError(STR.ERROR_NO_TEACHER_ID);
       setLoading(false);
       return;
     }
-    const tid = Number(teacherId);
+    const tid = Number(tidStr);
 
-    // 2. assignments
     let assigns: CourseAssign[];
     try {
       assigns = await courseService.getAllCourseAssigns();
       assigns = assigns.filter((a) => a.userId === tid);
     } catch (e) {
       console.error(e);
-      setError(TEACHER_COURSES_STRINGS.ERROR_FETCH_ASSIGNMENTS);
+      setError(STR.ERROR_FETCH_ASSIGNMENTS);
       setLoading(false);
       return;
     }
 
-    // 3. course details
-    const courseList: Course[] = [];
+    const list: Course[] = [];
     for (const a of assigns) {
       try {
         const c = await courseService.getById(a.courseId);
-        courseList.push(c);
-      } catch (e) {
-        console.error(e);
-        // skip this course
+        list.push(c);
+      } catch {
+        // skip on error
       }
     }
-    setCourses(courseList);
+    setCourses(list);
     setLoading(false);
   }, []);
 
-  // Initial load
   useEffect(() => {
     fetchCourses();
   }, [fetchCourses]);
 
-  // Filter by search
+  // search/filter
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return courses.filter(
       (c) =>
-        c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
+        c.name.toLowerCase().includes(q) ||
+        c.code.toLowerCase().includes(q)
     );
   }, [courses, search]);
 
-  // Table columns
+  // table columns
   const columns: Column<Course>[] = useMemo(
     () => [
-      { header: TEACHER_COURSES_STRINGS.COL_CODE, accessor: "code" },
-      { header: TEACHER_COURSES_STRINGS.COL_NAME, accessor: "name" },
+      { header: STR.COL_CODE, accessor: "code" },
+      { header: STR.COL_NAME, accessor: "name" },
       {
-        header: TEACHER_COURSES_STRINGS.COL_CREDITS,
-        accessor: (row) => String(row.credits),
+        header: STR.COL_CREDITS,
+        accessor: (r) => String(r.credits),
       },
       {
-        header: TEACHER_COURSES_STRINGS.COL_DURATION,
-        accessor: (row) => String(row.duration),
+        header: STR.COL_DURATION,
+        accessor: (r) => String(r.duration),
       },
     ],
     []
   );
 
-  // Chart for credits distribution
+  // pie chart for credits
   const pieData = useMemo(
     () => ({
       labels: filtered.map((c) => c.name),
       datasets: [
         {
-          label: TEACHER_COURSES_STRINGS.CHART_LABEL,
+          label: STR.CHART_LABEL,
           data: filtered.map((c) => c.credits),
         },
       ],
     }),
     [filtered]
   );
-
-  const pieOptions = useMemo(
+  const pieOpts = useMemo(
     () => ({
       responsive: true,
       plugins: {
         legend: { position: "top" as const, labels: { color: "white" } },
         title: {
           display: true,
-          text: TEACHER_COURSES_STRINGS.CHART_TITLE,
+          text: STR.CHART_TITLE,
           color: "white",
         },
       },
@@ -145,77 +126,83 @@ const Courses: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex font-roboto bg-gradient-to-br from-gray-900 to-black">
+    <div className="min-h-screen flex bg-gray-900 text-white">
       <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col overflow-x-hidden">
+      <div className="ml-64 flex-1 flex flex-col">
         <Navbar />
-        <main className="p-8 space-y-8 overflow-x-auto">
-          {/* Heading & Controls */}
+        <main className="p-6 space-y-8 overflow-x-auto">
+
+          {/* Header */}
           <div className="flex justify-between items-center">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-              {TEACHER_COURSES_STRINGS.PAGE_HEADING}
-            </h1>
+            <h1 className="text-3xl font-bold">{STR.PAGE_HEADING}</h1>
             <div className="flex space-x-4">
               <input
                 type="text"
-                placeholder="Search by code or name..."
+                placeholder={STR.SEARCH_PLACEHOLDER}
                 value={search}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setSearch(e.target.value)
                 }
-                className="px-4 py-2 bg-black bg-opacity-50 border border-indigo-500 rounded focus:outline-none text-white"
+                className="px-4 py-2 bg-gray-800 border border-indigo-500 rounded focus:outline-none text-white"
               />
-              <Button
-                label={TEACHER_COURSES_STRINGS.BTN_REFRESH}
+              <CommonButton
+                size="md"
+                variant="primary"
+                label={STR.BTN_REFRESH}
                 onClick={fetchCourses}
                 isLoading={loading}
-                variant="primary"
               />
             </div>
           </div>
 
           {/* Error */}
-          {error && <p className="text-red-500">{error}</p>}
+          {error && (
+            <div className="p-4 bg-red-600 rounded">{error}</div>
+          )}
 
-          {/* Credits Distribution Chart */}
-          <div className="bg-black bg-opacity-50 border border-indigo-500 rounded-xl shadow-xl p-6">
-            <Chart type="pie" data={pieData} options={pieOptions} />
-          </div>
+          {/* Credits Distribution */}
+          <section className="bg-gray-800 p-4 rounded-lg shadow">
+            <Chart type="pie" data={pieData} options={pieOpts} loading={loading} />
+          </section>
 
           {/* Course Cards */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((c) => (
-              <Card
-                key={c.id}
-                title={c.name}
-                value={`${c.credits} credits`}
-                icon="📘"
-              >
-                <p className="text-gray-300 mt-2">{c.description}</p>
-              </Card>
-            ))}
-            {filtered.length === 0 && (
-              <p className="text-white col-span-full text-center">
-                {TEACHER_COURSES_STRINGS.NO_COURSES}
+            {filtered.length > 0 ? (
+              filtered.map((c) => (
+                <Card
+                  key={c.id}
+                  title={c.name}
+                  value={`${c.credits} ${STR.CREDITS_LABEL}`}
+                  icon="📘"
+                  loading={loading}
+                >
+                  <p className="text-gray-300 mt-2">{c.description}</p>
+                </Card>
+              ))
+            ) : (
+              <p className="col-span-full text-center text-gray-400">
+                {STR.NO_COURSES}
               </p>
             )}
           </section>
 
           {/* Course Table */}
           <section>
-            <h2 className="text-2xl font-bold text-white mb-4">
-              {TEACHER_COURSES_STRINGS.TABLE_TITLE}
-            </h2>
-            {filtered.length > 0 ? (
-              <CommonTable columns={columns} data={filtered} />
-            ) : (
-              <p className="text-white">{TEACHER_COURSES_STRINGS.NO_COURSES}</p>
-            )}
+            <h2 className="text-2xl font-semibold mb-4">{STR.TABLE_TITLE}</h2>
+            <div className="bg-gray-800 p-4 rounded-lg shadow">
+              <CommonTable
+                columns={columns}
+                data={filtered}
+                loading={loading}
+                noDataMessage={STR.NO_COURSES}
+              />
+            </div>
           </section>
+
         </main>
       </div>
     </div>
   );
 };
 
-export default Courses;
+export default React.memo(Courses);
