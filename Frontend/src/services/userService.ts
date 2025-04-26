@@ -77,7 +77,7 @@ const userService = {
    * @param user - Partial user data to update.
    * @returns A promise resolving to the updated User object.
    */
-  update: async (id: number | string, user: Partial<User>): Promise<User> => {
+  update: async (id: number | string, user: Partial<AddUser>): Promise<User> => {
     const response = await axiosInstance.put(`/user/${id}`, user);
     return response.data;
   },
@@ -111,8 +111,11 @@ const userService = {
     return response.data;
   },
 
-  updatePassword: async (id: number | string, password: string): Promise<User> => {
-    const response = await axiosInstance.put(`/user/${id}`, { password });
+  updatePassword: async (id: number | string, user: AddUser): Promise<User> => {
+    const response = await axiosInstance.post(`/user/password`, { password: user.password }, {
+      params: { id }
+    } 
+    );
     return response.data;
   }
 };
