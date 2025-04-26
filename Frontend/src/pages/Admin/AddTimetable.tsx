@@ -69,7 +69,7 @@ const AddTimetable: React.FC = () => {
       await timetableService.create(formData);
       setSuccess(SUCCESS_MESSAGE_ADD);
       handleClear();
-      setTimeout(() => navigate("/admin/timetable"), 1500);
+      setTimeout(() => navigate(-1), 1500);
     } catch {
       setError(ERROR_MESSAGE_ADD);
     } finally {

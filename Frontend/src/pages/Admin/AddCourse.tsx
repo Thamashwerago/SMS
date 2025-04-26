@@ -94,7 +94,7 @@ const AddCourse: React.FC = () => {
         name: formData.name,
         credits: Number(formData.credits),
         duration: Number(formData.duration),
-        description: formData.description,
+        description: formData.description, 
       });
       // 2) assign teacher
       await courseService.createCourseAssign({

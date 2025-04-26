@@ -119,28 +119,26 @@ const AdminProfile: React.FC = () => {
                   id="username"
                   name="username"
                   value={formData.username}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring focus:ring-indigo-500"
+                  readOnly
+                  className="w-full px-4 py-2 bg-gray-700 rounded cursor-not-allowed focus:outline-none focus:ring focus:ring-indigo-500"
                 />
               </div>
 
               {/* Email */}
-              <div>
-                <label htmlFor="email" className="block mb-1 font-medium">
-                  {PROFILE_STRINGS.LABEL_EMAIL}
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring focus:ring-indigo-500"
-                />
-              </div>
-
+                <div>
+                  <label htmlFor="email" className="block mb-1 font-medium">
+                    {PROFILE_STRINGS.LABEL_EMAIL}
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    readOnly
+                    className="w-full px-4 py-2 bg-gray-700 rounded cursor-not-allowed focus:outline-none focus:ring focus:ring-indigo-500"
+                  />
+                </div>
+                
               {/* Password */}
               <div className="relative">
                 <label htmlFor="password" className="block mb-1 font-medium">
