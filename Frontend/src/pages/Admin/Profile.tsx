@@ -154,7 +154,7 @@ const AdminProfile: React.FC = () => {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-3 flex items-center"
+                  className="absolute inset-y-12 right-3 flex items-center"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label="Toggle password visibility"
                 >
@@ -163,7 +163,7 @@ const AdminProfile: React.FC = () => {
               </div>
 
               {/* Confirm Password */}
-              <div>
+              <div className="relative">
                 <label htmlFor="confirmPassword" className="block mb-1 font-medium">
                   {PROFILE_STRINGS.LABEL_CONFIRM_PASSWORD}
                 </label>
@@ -175,6 +175,14 @@ const AdminProfile: React.FC = () => {
                   onChange={handleChange}
                   className="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring focus:ring-indigo-500"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-12 right-3 flex items-center"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
               </div>
 
               {/* Save Button */}
