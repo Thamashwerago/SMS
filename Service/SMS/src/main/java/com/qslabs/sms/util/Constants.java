@@ -22,7 +22,7 @@ public class Constants {
     /**
      * Allowed origins for CORS requests.
      */
-    public static final String[] ALLOWED_ORIGINS = {"http://localhost:5173","http://172.236.144.75:5432"};
+    public static final String[] ALLOWED_ORIGINS = {"http://localhost:5173","http://172.236.144.75:5432","http://172.236.144.75:3000"};
 
     /**
      * Allowed HTTP method.
