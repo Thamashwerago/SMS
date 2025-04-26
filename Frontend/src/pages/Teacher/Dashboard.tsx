@@ -36,8 +36,9 @@ const TeacherDashboard: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const tidStr = sessionStorage.getItem("userId");
-      if (!tidStr) throw new Error(STR.ERROR_NO_TEACHER_ID);
+      const user = localStorage.getItem("user") ?? sessionStorage.getItem("user") ?? "{}";
+      const tidStr = JSON.parse(user);
+      if (!tidStr.userId) throw new Error(STR.ERROR_NO_TEACHER_ID);
       const tid = Number(tidStr);
 
       // assignments
