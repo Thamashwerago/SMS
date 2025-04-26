@@ -67,9 +67,11 @@ const AdminProfile: React.FC = () => {
     if (!profile) return;
     setLoading(true);
     try {
-      await userService.update(profile.id, {
+      await userService.updatePassword(profile.id, {
+        id: profile.id,
         username: formData.username,
         email: formData.email,
+        role: profile.role,
         password: formData.password,
       });
       setSuccess(PROFILE_STRINGS.SUCCESS_UPDATE);
