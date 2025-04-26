@@ -7,7 +7,6 @@ import { setCredentials } from "../../store/authSlice";
 import Button from "../../components/common/Button";
 import userService from "../../services/userService";
 import { LOGIN_STRINGS } from "../../constants/auth/loginConsts";
-//import { ADMIN_DASHBOARD_PATH, STUDENT_DASHBOARD_PATH, TEACHER_DASHBOARD_PATH,} from "../../constants/RouteStrings";
 
 /**
  * Login Component
@@ -50,7 +49,7 @@ const Login: React.FC = () => {
   /** On mount: if already logged in, redirect */
   useEffect(() => {
     const stored =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
+      localStorage.getItem("user") ?? sessionStorage.getItem("user");
 
     if (!stored) return;
 
@@ -66,9 +65,9 @@ const Login: React.FC = () => {
         }, 0);
       }
     } catch (e) {
-      console.error("Invalid user data in storage");
+      console.error("Invalid user data in storage:", e);
     }
-  }, []);
+  }, [dispatch, handleNavigation]);
 
   /**
    * Form submit:
